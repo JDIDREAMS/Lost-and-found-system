@@ -43,7 +43,7 @@ interface ClaimDetail {
 interface MessageRow {
   id: string;
   sender_id: string;
-  body: string;
+  text: string;
   created_at: string;
 }
 
@@ -79,7 +79,7 @@ function ClaimThread() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("messages")
-        .select("id, sender_id, body, created_at")
+        .select("id, sender_id, text, created_at")
         .eq("claim_id", claimId)
         .order("created_at", { ascending: true });
       if (error) throw error;
@@ -115,7 +115,7 @@ function ClaimThread() {
     setDraft("");
     const { error } = await supabase
       .from("messages")
-      .insert({ claim_id: claimId, sender_id: user.id, body });
+      .insert({ claim_id: claimId, sender_id: user.id, text: body });
     if (error) {
       toast.error(error.message);
       return;
@@ -189,7 +189,7 @@ function ClaimThread() {
                           : "max-w-[80%] rounded-2xl rounded-bl-sm bg-muted px-4 py-2 text-sm"
                       }
                     >
-                      <p className="whitespace-pre-line">{m.body}</p>
+                      <p className="whitespace-pre-line">{m.text}</p>
                       <p className="mt-1 text-[10px] opacity-70">{formatDateTime(m.created_at)}</p>
                     </div>
                   </div>

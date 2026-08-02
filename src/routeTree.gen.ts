@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BrowseRouteImport } from './routes/browse'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as PostRouteImport } from './routes/post'
+import { Route as ClaimsClaimIdRouteImport } from './routes/claims/$claimId'
 import { Route as ItemsIdRouteImport } from './routes/items/$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -41,6 +42,11 @@ const PostRoute = PostRouteImport.update({
   path: '/post',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClaimsClaimIdRoute = ClaimsClaimIdRouteImport.update({
+  id: '/claims/$claimId',
+  path: '/claims/$claimId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ItemsIdRoute = ItemsIdRouteImport.update({
   id: '/items/$id',
   path: '/items/$id',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/browse': typeof BrowseRoute
   '/dashboard': typeof DashboardRoute
   '/post': typeof PostRoute
+  '/claims/$claimId': typeof ClaimsClaimIdRoute
   '/items/$id': typeof ItemsIdRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/browse': typeof BrowseRoute
   '/dashboard': typeof DashboardRoute
   '/post': typeof PostRoute
+  '/claims/$claimId': typeof ClaimsClaimIdRoute
   '/items/$id': typeof ItemsIdRoute
 }
 export interface FileRoutesById {
@@ -70,13 +78,28 @@ export interface FileRoutesById {
   '/browse': typeof BrowseRoute
   '/dashboard': typeof DashboardRoute
   '/post': typeof PostRoute
+  '/claims/$claimId': typeof ClaimsClaimIdRoute
   '/items/$id': typeof ItemsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/browse' | '/dashboard' | '/post' | '/items/$id'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/browse'
+    | '/dashboard'
+    | '/post'
+    | '/claims/$claimId'
+    | '/items/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/browse' | '/dashboard' | '/post' | '/items/$id'
+  to:
+    | '/'
+    | '/auth'
+    | '/browse'
+    | '/dashboard'
+    | '/post'
+    | '/claims/$claimId'
+    | '/items/$id'
   id:
     | '__root__'
     | '/'
@@ -84,6 +107,7 @@ export interface FileRouteTypes {
     | '/browse'
     | '/dashboard'
     | '/post'
+    | '/claims/$claimId'
     | '/items/$id'
   fileRoutesById: FileRoutesById
 }
@@ -93,6 +117,7 @@ export interface RootRouteChildren {
   BrowseRoute: typeof BrowseRoute
   DashboardRoute: typeof DashboardRoute
   PostRoute: typeof PostRoute
+  ClaimsClaimIdRoute: typeof ClaimsClaimIdRoute
   ItemsIdRoute: typeof ItemsIdRoute
 }
 
@@ -133,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PostRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/claims/$claimId': {
+      id: '/claims/$claimId'
+      path: '/claims/$claimId'
+      fullPath: '/claims/$claimId'
+      preLoaderRoute: typeof ClaimsClaimIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/items/$id': {
       id: '/items/$id'
       path: '/items/$id'
@@ -149,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   BrowseRoute: BrowseRoute,
   DashboardRoute: DashboardRoute,
   PostRoute: PostRoute,
+  ClaimsClaimIdRoute: ClaimsClaimIdRoute,
   ItemsIdRoute: ItemsIdRoute,
 }
 export const routeTree = rootRouteImport
