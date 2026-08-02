@@ -14,16 +14,219 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      claims: {
+        Row: {
+          claimant_id: string
+          created_at: string
+          id: string
+          item_id: string
+          message: string
+          status: Database["public"]["Enums"]["claim_status"]
+        }
+        Insert: {
+          claimant_id: string
+          created_at?: string
+          id?: string
+          item_id: string
+          message: string
+          status?: Database["public"]["Enums"]["claim_status"]
+        }
+        Update: {
+          claimant_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          message?: string
+          status?: Database["public"]["Enums"]["claim_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claims_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      items: {
+        Row: {
+          category: string
+          contact_info: string | null
+          created_at: string
+          date_occurred: string
+          description: string
+          id: string
+          image_url: string | null
+          item_type: Database["public"]["Enums"]["item_type"]
+          location: string
+          posted_by: string | null
+          poster_name: string
+          status: Database["public"]["Enums"]["item_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          contact_info?: string | null
+          created_at?: string
+          date_occurred?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          item_type: Database["public"]["Enums"]["item_type"]
+          location?: string
+          posted_by?: string | null
+          poster_name?: string
+          status?: Database["public"]["Enums"]["item_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          contact_info?: string | null
+          created_at?: string
+          date_occurred?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          item_type?: Database["public"]["Enums"]["item_type"]
+          location?: string
+          posted_by?: string | null
+          poster_name?: string
+          status?: Database["public"]["Enums"]["item_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          claim_id: string
+          created_at: string
+          id: string
+          is_read: boolean
+          sender_id: string
+          text: string
+        }
+        Insert: {
+          claim_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          sender_id: string
+          text: string
+        }
+        Update: {
+          claim_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          sender_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "claims"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          text: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          text: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          text?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string
+          id: string
+          phone: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id: string
+          phone?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_claim_participant: {
+        Args: { _claim_id: string; _user_id: string }
+        Returns: boolean
+      }
+      item_owner: { Args: { _item_id: string }; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
+      claim_status: "pending" | "approved" | "rejected"
+      item_status: "open" | "claimed" | "resolved"
+      item_type: "lost" | "found"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +353,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+      claim_status: ["pending", "approved", "rejected"],
+      item_status: ["open", "claimed", "resolved"],
+      item_type: ["lost", "found"],
+    },
   },
 } as const
