@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BrowseRouteImport } from './routes/browse'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as PostRouteImport } from './routes/post'
 import { Route as ItemsIdRouteImport } from './routes/items/$id'
 
@@ -30,6 +31,11 @@ const BrowseRoute = BrowseRouteImport.update({
   path: '/browse',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PostRoute = PostRouteImport.update({
   id: '/post',
   path: '/post',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
+  '/dashboard': typeof DashboardRoute
   '/post': typeof PostRoute
   '/items/$id': typeof ItemsIdRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
+  '/dashboard': typeof DashboardRoute
   '/post': typeof PostRoute
   '/items/$id': typeof ItemsIdRoute
 }
@@ -60,21 +68,30 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
+  '/dashboard': typeof DashboardRoute
   '/post': typeof PostRoute
   '/items/$id': typeof ItemsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/browse' | '/post' | '/items/$id'
+  fullPaths: '/' | '/auth' | '/browse' | '/dashboard' | '/post' | '/items/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/browse' | '/post' | '/items/$id'
-  id: '__root__' | '/' | '/auth' | '/browse' | '/post' | '/items/$id'
+  to: '/' | '/auth' | '/browse' | '/dashboard' | '/post' | '/items/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/browse'
+    | '/dashboard'
+    | '/post'
+    | '/items/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   BrowseRoute: typeof BrowseRoute
+  DashboardRoute: typeof DashboardRoute
   PostRoute: typeof PostRoute
   ItemsIdRoute: typeof ItemsIdRoute
 }
@@ -102,6 +119,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BrowseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/post': {
       id: '/post'
       path: '/post'
@@ -123,6 +147,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   BrowseRoute: BrowseRoute,
+  DashboardRoute: DashboardRoute,
   PostRoute: PostRoute,
   ItemsIdRoute: ItemsIdRoute,
 }
