@@ -31,7 +31,7 @@ export const Route = createFileRoute("/post")({
       { property: "og:title", content: "Report a lost or found item | FoundIt" },
       {
         property: "og:description",
-        content: "Add a listing to the community lost and found board in under a minute.",
+        content: "Add a listing to the campus lost and found board in under a minute.",
       },
     ],
   }),
@@ -158,7 +158,7 @@ function PostItem() {
               required
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="Central Library, second floor"
+              placeholder="Main Library, second floor"
             />
           </div>
 

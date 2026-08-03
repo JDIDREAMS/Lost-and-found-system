@@ -79,14 +79,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "FoundIt — Community Lost & Found" },
+      { title: "FoundIt — Campus Lost & Found" },
       {
         name: "description",
         content:
           "Report lost belongings, post items you've found, and reunite people with their things.",
       },
       { name: "author", content: "FoundIt" },
-      { property: "og:title", content: "FoundIt — Community Lost & Found" },
+      { property: "og:title", content: "FoundIt — Campus Lost & Found" },
       {
         property: "og:description",
         content: "Report lost belongings, post found items, and claim what's yours.",

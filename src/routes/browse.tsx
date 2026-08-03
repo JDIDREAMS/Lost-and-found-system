@@ -30,7 +30,7 @@ export const Route = createFileRoute("/browse")({
       { property: "og:title", content: "Browse lost & found items | FoundIt" },
       {
         property: "og:description",
-        content: "Filter the community board by category, location, status and date.",
+        content: "Filter the campus board by category, location, status and date.",
       },
     ],
   }),
@@ -179,7 +179,7 @@ function Browse() {
                 <Label htmlFor="location">Location</Label>
                 <Input
                   id="location"
-                  placeholder="Library, Bus 14…"
+                  placeholder="Main Library, Lecture Hall B…"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                 />

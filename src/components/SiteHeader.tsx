@@ -97,7 +97,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-20 border-t bg-surface">
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <p>FoundIt — a community lost &amp; found board.</p>
+        <p>FoundIt — the campus lost &amp; found board for students and staff.</p>
         <nav className="flex gap-4">
           <Link to="/browse" className="hover:text-foreground">
             Browse items

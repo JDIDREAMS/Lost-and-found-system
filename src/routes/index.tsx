@@ -11,13 +11,13 @@ import type { ItemRow } from "@/lib/lostfound";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FoundIt — Lost & Found for your community" },
+      { title: "FoundIt — Campus Lost & Found" },
       {
         name: "description",
         content:
           "Post lost or found items, search the board by category and location, and message safely to return belongings to their owners.",
       },
-      { property: "og:title", content: "FoundIt — Lost & Found for your community" },
+      { property: "og:title", content: "FoundIt — Campus Lost & Found" },
       {
         property: "og:description",
         content: "Post lost or found items, search the board, and reunite people with what matters.",
