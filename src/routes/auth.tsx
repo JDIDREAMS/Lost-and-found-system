@@ -16,7 +16,7 @@ export const Route = createFileRoute("/auth")({
       {
         name: "description",
         content:
-          "Sign in to post lost and found items, submit claims and message other members of your community.",
+          "Sign in to post lost and found items, submit claims and message other students and staff on campus.",
       },
       { property: "og:title", content: "Sign in or create an account | FoundIt" },
       {
@@ -97,7 +97,7 @@ function AuthPage() {
             Create an account to report items, claim what's yours and message safely.
           </p>
         </div>
-        <p className="text-sm opacity-70">Community lost &amp; found board</p>
+        <p className="text-sm opacity-70">Campus lost &amp; found board</p>
       </div>
 
       <div className="flex items-center justify-center px-4 py-16">
