@@ -1,13 +1,15 @@
 export const CATEGORIES = [
   "Electronics",
+  "Student ID & Cards",
+  "Books & Notes",
   "Wallets",
   "Keys",
   "Bags",
   "Documents",
+  "Lab & Sports Gear",
   "Jewellery",
   "Clothing",
   "Accessories",
-  "Pets",
   "Other",
 ] as const;
 
