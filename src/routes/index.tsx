@@ -124,7 +124,7 @@ function Index() {
               {
                 icon: Search,
                 title: "Post & search",
-                body: "Add a photo, category, location and date. Filter the board to narrow things down fast.",
+                body: "Add a photo, category, campus location and date. Filter the board by building or block to narrow things down fast.",
               },
               {
                 icon: ShieldCheck,
@@ -134,7 +134,7 @@ function Index() {
               {
                 icon: MessagesSquare,
                 title: "Message & meet",
-                body: "A private thread opens per claim, with notifications for every reply and decision.",
+                body: "A private thread opens per claim, so you can arrange a handover at the department office or security desk.",
               },
             ].map((f) => (
               <div key={f.title} className="rounded-2xl border bg-card p-6 shadow-soft">
