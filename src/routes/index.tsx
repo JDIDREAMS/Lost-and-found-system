@@ -69,15 +69,16 @@ function Index() {
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2 lg:py-24">
             <div>
               <span className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
-                <HandHeart className="size-3.5 text-accent" /> Built for campuses, offices and
-                neighbourhoods
+                <HandHeart className="size-3.5 text-accent" /> For students, staff and faculty on
+                campus
               </span>
               <h1 className="mt-5 text-4xl leading-[1.05] font-semibold sm:text-5xl lg:text-6xl">
-                Lost something? Someone probably found it.
+                Lost it on campus? Someone probably found it.
               </h1>
               <p className="mt-5 max-w-lg text-lg text-muted-foreground">
-                One shared board for lost and found belongings — with claim requests, private
-                messaging and notifications so things actually make it home.
+                One university-wide board for lost and found belongings — lecture halls, libraries,
+                labs, hostels and shuttles — with claim requests, private messaging and
+                notifications so things actually make it back.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button size="lg" asChild>
