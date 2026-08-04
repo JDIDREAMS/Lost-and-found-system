@@ -16,14 +16,15 @@ export function SiteHeader() {
   const { user, displayName, isAdmin, signOut } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-foreground/15 bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
-        <Link to="/" className="flex items-center gap-2 font-display text-lg font-semibold">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
+          <span className="flex size-8 items-center justify-center rounded-sm bg-foreground text-background">
             <Search className="size-4" />
           </span>
           FoundIt
         </Link>
+
 
         <nav className="ml-4 hidden items-center gap-1 md:flex">
           <Button variant="ghost" size="sm" asChild>
