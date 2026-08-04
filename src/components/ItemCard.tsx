@@ -9,9 +9,9 @@ export function ItemCard({ item }: { item: ItemRow }) {
     <Link
       to="/items/$id"
       params={{ id: item.id }}
-      className="group flex flex-col overflow-hidden rounded-xl border bg-card shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group flex flex-col overflow-hidden rounded-lg border border-foreground/15 bg-card transition-colors hover:bg-surface focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="relative aspect-[4/3] overflow-hidden border-b border-foreground/15">
         <ItemImage
           path={item.image_url}
           alt={item.title}
@@ -19,23 +19,24 @@ export function ItemCard({ item }: { item: ItemRow }) {
         />
         <Badge
           variant={item.item_type === "lost" ? "lost" : "found"}
-          className="absolute left-3 top-3 uppercase tracking-wide"
+          className="rule-label absolute top-3 left-3 rounded-sm"
         >
           {item.item_type}
         </Badge>
         {item.status !== "open" && (
-          <Badge variant="outline" className="absolute right-3 top-3 bg-card/90 backdrop-blur">
+          <Badge
+            variant="outline"
+            className="absolute top-3 right-3 rounded-sm bg-card/90 backdrop-blur"
+          >
             {item.status === "claimed" ? "Claim in progress" : "Resolved"}
           </Badge>
         )}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          {item.category}
-        </span>
-        <h3 className="text-lg leading-snug font-semibold">{item.title}</h3>
+        <span className="rule-label text-muted-foreground">{item.category}</span>
+        <h3 className="text-lg leading-snug font-bold">{item.title}</h3>
         <p className="line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
-        <div className="mt-auto flex flex-wrap gap-x-4 gap-y-1 pt-3 text-xs text-muted-foreground">
+        <div className="mt-auto flex flex-wrap gap-x-4 gap-y-1 border-t border-foreground/10 pt-3 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <MapPin className="size-3.5" /> {item.location || "Unspecified"}
           </span>
@@ -45,5 +46,6 @@ export function ItemCard({ item }: { item: ItemRow }) {
         </div>
       </div>
     </Link>
+
   );
 }
