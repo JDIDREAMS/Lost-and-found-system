@@ -64,98 +64,119 @@ function Index() {
     <div className="min-h-screen">
       <SiteHeader />
 
-      <main>
-        <section className="relative overflow-hidden border-b">
-          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2 lg:py-24">
-            <div>
-              <span className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
-                <HandHeart className="size-3.5 text-accent" /> For students, staff and faculty on
-                campus
+      <main className="mx-auto max-w-6xl px-4">
+        {/* Bento hero */}
+        <section className="grid gap-3 py-8 md:grid-cols-6 md:py-12">
+          <div className="relative flex flex-col justify-between overflow-hidden rounded-lg border border-foreground/15 bg-card p-6 md:col-span-4 md:p-10">
+            <div className="paper-grid pointer-events-none absolute inset-0 opacity-40" />
+            <div className="relative">
+              <span className="rule-label inline-flex items-center gap-2 text-muted-foreground">
+                <HandHeart className="size-3.5" /> Students · Staff · Faculty
               </span>
-              <h1 className="mt-5 text-4xl leading-[1.05] font-semibold sm:text-5xl lg:text-6xl">
-                Lost it on campus? Someone probably found it.
+              <h1 className="mt-6 text-4xl leading-[0.95] font-bold sm:text-5xl lg:text-6xl">
+                Lost it on campus?
+                <br />
+                Someone probably
+                <br />
+                found it.
               </h1>
-              <p className="mt-5 max-w-lg text-lg text-muted-foreground">
+              <p className="mt-5 max-w-md text-muted-foreground">
                 One university-wide board for lost and found belongings — lecture halls, libraries,
                 labs, hostels and shuttles — with claim requests, private messaging and
-                notifications so things actually make it back.
+                notifications.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Button size="lg" asChild>
-                  <Link to="/browse">
-                    <Search className="size-4" /> Browse the board
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link to="/post">
-                    Report an item <ArrowRight className="size-4" />
-                  </Link>
-                </Button>
-              </div>
-              <dl className="mt-10 grid max-w-md grid-cols-3 gap-4">
-                {[
-                  { label: "Items posted", value: stats?.total ?? 0 },
-                  { label: "Found reports", value: stats?.found ?? 0 },
-                  { label: "Reunited", value: stats?.resolved ?? 0 },
-                ].map((s) => (
-                  <div key={s.label} className="rounded-xl border bg-card p-4 shadow-soft">
-                    <dt className="text-xs text-muted-foreground">{s.label}</dt>
-                    <dd className="font-display text-2xl font-semibold">{s.value}</dd>
-                  </div>
-                ))}
-              </dl>
             </div>
-            <div className="relative">
-              <div className="absolute -inset-4 -z-10 rounded-3xl paper-grid opacity-70" />
+            <div className="relative mt-8 flex flex-wrap gap-2">
+              <Button size="lg" className="rounded-md" asChild>
+                <Link to="/browse">
+                  <Search className="size-4" /> Browse the board
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="rounded-md" asChild>
+                <Link to="/post">
+                  Report an item <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid gap-3 md:col-span-2">
+            <div className="overflow-hidden rounded-lg border border-foreground/15">
               <img
                 src={heroImage}
                 alt="A wooden lost and found tray holding keys, glasses, a scarf and a notebook"
                 width={1600}
                 height={1104}
-                className="w-full rounded-2xl border object-cover shadow-lift"
+                className="h-52 w-full object-cover md:h-full"
               />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: "Posted", value: stats?.total ?? 0 },
+                { label: "Found", value: stats?.found ?? 0 },
+                { label: "Reunited", value: stats?.resolved ?? 0 },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className="rounded-lg border border-foreground/15 bg-card px-3 py-4"
+                >
+                  <div className="font-display text-3xl leading-none font-bold">{s.value}</div>
+                  <div className="rule-label mt-2 text-muted-foreground">{s.label}</div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 py-16">
-          <div className="grid gap-6 sm:grid-cols-3">
-            {[
-              {
-                icon: Search,
-                title: "Post & search",
-                body: "Add a photo, category, campus location and date. Filter the board by building or block to narrow things down fast.",
-              },
-              {
-                icon: ShieldCheck,
-                title: "Claim with proof",
-                body: "Claimants describe the item privately. The poster approves or rejects — no public phone numbers.",
-              },
-              {
-                icon: MessagesSquare,
-                title: "Message & meet",
-                body: "A private thread opens per claim, so you can arrange a handover at the department office or security desk.",
-              },
-            ].map((f) => (
-              <div key={f.title} className="rounded-2xl border bg-card p-6 shadow-soft">
-                <f.icon className="size-6 text-primary" />
-                <h2 className="mt-4 text-xl font-semibold">{f.title}</h2>
-                <p className="mt-2 text-sm text-muted-foreground">{f.body}</p>
-              </div>
-            ))}
-          </div>
+        {/* Bento: how it works */}
+        <section className="grid gap-3 pb-12 md:grid-cols-6">
+          {[
+            {
+              icon: Search,
+              title: "Post & search",
+              body: "Add a photo, category, campus location and date. Filter by building or block to narrow things down fast.",
+              span: "md:col-span-3",
+              tone: "bg-foreground text-background",
+            },
+            {
+              icon: ShieldCheck,
+              title: "Claim with proof",
+              body: "Claimants describe the item privately. The poster approves or rejects — no public phone numbers.",
+              span: "md:col-span-3",
+              tone: "bg-card",
+            },
+            {
+              icon: MessagesSquare,
+              title: "Message & meet",
+              body: "A private thread opens per claim, so you can arrange a handover at the department office or security desk.",
+              span: "md:col-span-6",
+              tone: "bg-surface",
+            },
+          ].map((f) => (
+            <div
+              key={f.title}
+              className={`rounded-lg border border-foreground/15 p-6 ${f.span} ${f.tone}`}
+            >
+              <f.icon className="size-5" />
+              <h2 className="mt-4 text-xl font-bold">{f.title}</h2>
+              <p className="mt-2 max-w-xl text-sm opacity-70">{f.body}</p>
+            </div>
+          ))}
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 pb-8">
-          <div className="mb-6 flex items-end justify-between">
-            <h2 className="text-3xl font-semibold">Recently posted</h2>
+        <section className="border-t border-foreground/15 py-12">
+          <div className="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <span className="rule-label text-muted-foreground">The board</span>
+              <h2 className="mt-2 text-3xl font-bold">Recently posted</h2>
+            </div>
             <Button variant="ghost" asChild>
               <Link to="/browse">
                 See all <ArrowRight className="size-4" />
               </Link>
             </Button>
           </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {(recent ?? []).map((item) => (
               <ItemCard key={item.id} item={item} />
             ))}
@@ -167,3 +188,4 @@ function Index() {
     </div>
   );
 }
+
