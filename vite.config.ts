@@ -12,4 +12,20 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    server: {
+      proxy: {
+        // Forward all /api/* requests to the Express backend (avoids browser CORS blocks)
+        "/api": {
+          target: "http://localhost:5000",
+          changeOrigin: true,
+        },
+        // Forward uploaded image requests to the backend static file server
+        "/uploads": {
+          target: "http://localhost:5000",
+          changeOrigin: true,
+        },
+      },
+    },
+  },
 });

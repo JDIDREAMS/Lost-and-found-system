@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BrowseRouteImport } from './routes/browse'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as PostRouteImport } from './routes/post'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ClaimsClaimIdRouteImport } from './routes/claims/$claimId'
 import { Route as ItemsIdRouteImport } from './routes/items/$id'
 
@@ -48,6 +49,11 @@ const PostRoute = PostRouteImport.update({
   path: '/post',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClaimsClaimIdRoute = ClaimsClaimIdRouteImport.update({
   id: '/claims/$claimId',
   path: '/claims/$claimId',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/browse': typeof BrowseRoute
   '/dashboard': typeof DashboardRoute
   '/post': typeof PostRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/claims/$claimId': typeof ClaimsClaimIdRoute
   '/items/$id': typeof ItemsIdRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/browse': typeof BrowseRoute
   '/dashboard': typeof DashboardRoute
   '/post': typeof PostRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/claims/$claimId': typeof ClaimsClaimIdRoute
   '/items/$id': typeof ItemsIdRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/browse': typeof BrowseRoute
   '/dashboard': typeof DashboardRoute
   '/post': typeof PostRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/claims/$claimId': typeof ClaimsClaimIdRoute
   '/items/$id': typeof ItemsIdRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/browse'
     | '/dashboard'
     | '/post'
+    | '/reset-password'
     | '/claims/$claimId'
     | '/items/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/browse'
     | '/dashboard'
     | '/post'
+    | '/reset-password'
     | '/claims/$claimId'
     | '/items/$id'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/browse'
     | '/dashboard'
     | '/post'
+    | '/reset-password'
     | '/claims/$claimId'
     | '/items/$id'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   BrowseRoute: typeof BrowseRoute
   DashboardRoute: typeof DashboardRoute
   PostRoute: typeof PostRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ClaimsClaimIdRoute: typeof ClaimsClaimIdRoute
   ItemsIdRoute: typeof ItemsIdRoute
 }
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PostRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/claims/$claimId': {
       id: '/claims/$claimId'
       path: '/claims/$claimId'
@@ -202,9 +222,20 @@ const rootRouteChildren: RootRouteChildren = {
   BrowseRoute: BrowseRoute,
   DashboardRoute: DashboardRoute,
   PostRoute: PostRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ClaimsClaimIdRoute: ClaimsClaimIdRoute,
   ItemsIdRoute: ItemsIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

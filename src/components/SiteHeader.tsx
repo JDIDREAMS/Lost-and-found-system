@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { Compass, PlusCircle, LayoutDashboard, LogOut, Shield, Search } from "lucide-react";
+import { Compass, PlusCircle, LayoutDashboard, LogOut, Shield, Search, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/NotificationBell";
 import {
@@ -14,6 +15,7 @@ import {
 
 export function SiteHeader() {
   const { user, displayName, isAdmin, signOut } = useAuth();
+  const { theme, setTheme, isDark } = useTheme();
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
@@ -52,7 +54,17 @@ export function SiteHeader() {
           )}
         </nav>
 
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(isDark ? "light" : "dark")}
+            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            className="size-9 rounded-full"
+          >
+            {isDark ? <Sun className="size-4 text-amber-400" /> : <Moon className="size-4 text-slate-700" />}
+            <span className="sr-only">Toggle theme</span>
+          </Button>
           <NotificationBell />
           {user ? (
             <DropdownMenu>

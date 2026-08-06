@@ -6,7 +6,42 @@ import { CalendarDays, MapPin, Mail, Loader2, Trash2, ArrowLeft } from "lucide-r
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
-import { ItemImage } from "@/components/ItemImage";
+import { ItemImage, parseImagePaths } from "@/components/ItemImage";
+
+function ItemGallery({ imagePayload, title }: { imagePayload: string | null; title: string }) {
+  const images = parseImagePaths(imagePayload);
+  const [selectedIdx, setSelectedIdx] = useState(0);
+
+  if (images.length <= 1) {
+    return (
+      <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
+        <ItemImage path={images[0] ?? null} alt={title} eager className="aspect-[4/3] w-full" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
+        <ItemImage path={images[selectedIdx] ?? images[0] ?? null} alt={`${title} image ${selectedIdx + 1}`} eager className="aspect-[4/3] w-full" />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {images.map((path, idx) => (
+          <button
+            key={idx}
+            type="button"
+            onClick={() => setSelectedIdx(idx)}
+            className={`relative aspect-square w-16 overflow-hidden rounded-xl border transition ${
+              selectedIdx === idx ? "ring-2 ring-primary border-primary" : "opacity-70 hover:opacity-100"
+            }`}
+          >
+            <ItemImage path={path} alt={`${title} thumbnail ${idx + 1}`} className="h-full w-full object-cover" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -154,14 +189,7 @@ function ItemDetail() {
           </div>
         ) : (
           <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
-            <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
-              <ItemImage
-                path={item.image_url}
-                alt={item.title}
-                eager
-                className="aspect-[4/3] w-full"
-              />
-            </div>
+            <ItemGallery imagePayload={item.image_url} title={item.title} />
 
             <div>
               <div className="flex flex-wrap items-center gap-2">

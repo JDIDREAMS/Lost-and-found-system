@@ -1,11 +1,25 @@
 import { useEffect, useState } from "react";
 import { ImageOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getImageUrl } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const cache = new Map<string, string>();
 
-/** Resolves an image reference (storage path or absolute URL) to a displayable src. */
+export function parseImagePaths(pathStr: string | null): string[] {
+  if (!pathStr) return [];
+  try {
+    if (pathStr.startsWith("[") && pathStr.endsWith("]")) {
+      const parsed = JSON.parse(pathStr);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+    }
+  } catch {
+    // Fall back to single path
+  }
+  return [pathStr];
+}
+
+/** Resolves an image reference (storage path, backend static URL, JSON array, or absolute URL) to a displayable src. */
 export function ItemImage({
   path,
   alt,
@@ -17,36 +31,49 @@ export function ItemImage({
   className?: string;
   eager?: boolean;
 }) {
-  const [src, setSrc] = useState<string | null>(() =>
-    path && /^https?:\/\//.test(path) ? path : path ? (cache.get(path) ?? null) : null,
-  );
+  const primaryPath = parseImagePaths(path)[0] ?? null;
+
+  const [src, setSrc] = useState<string | null>(() => {
+    if (!primaryPath) return null;
+    const resolved = getImageUrl(primaryPath);
+    if (resolved && (/^https?:\/\//.test(resolved) || resolved.startsWith("http"))) {
+      return resolved;
+    }
+    return cache.get(primaryPath) ?? null;
+  });
 
   useEffect(() => {
-    if (!path || /^https?:\/\//.test(path)) return;
-    if (cache.has(path)) {
-      setSrc(cache.get(path)!);
+    if (!primaryPath) return;
+    const resolved = getImageUrl(primaryPath);
+    if (resolved && /^https?:\/\//.test(resolved)) {
+      setSrc(resolved);
+      return;
+    }
+
+    if (cache.has(primaryPath)) {
+      setSrc(cache.get(primaryPath)!);
       return;
     }
     let active = true;
     void supabase.storage
       .from("item-images")
-      .createSignedUrl(path, 60 * 60)
+      .createSignedUrl(primaryPath, 60 * 60)
       .then(({ data }) => {
         if (!active || !data?.signedUrl) return;
-        cache.set(path, data.signedUrl);
+        cache.set(primaryPath, data.signedUrl);
         setSrc(data.signedUrl);
       });
     return () => {
       active = false;
     };
-  }, [path]);
+  }, [primaryPath]);
 
   if (!src) {
     return (
       <div
         className={cn(
           "flex items-center justify-center bg-surface text-muted-foreground",
-          className,
+          className
         )}
         aria-hidden="true"
       >

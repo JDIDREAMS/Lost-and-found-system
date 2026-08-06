@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/lib/api";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
 import { ItemCard } from "@/components/ItemCard";
 import { Badge } from "@/components/ui/badge";
@@ -50,13 +50,9 @@ function Dashboard() {
     queryKey: ["my-items", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("items")
-        .select("*")
-        .eq("posted_by", user!.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as ItemRow[];
+      // Fetch all items then filter by this user's ID (Express backend)
+      const { items } = await api.getItems();
+      return items.filter((i) => i.posted_by === user!.id) as ItemRow[];
     },
   });
 
@@ -64,13 +60,18 @@ function Dashboard() {
     queryKey: ["my-claims", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("claims")
-        .select("id, status, message, created_at, item_id, items(title, item_type)")
-        .eq("claimant_id", user!.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as unknown as ClaimWithItem[];
+      const { claims } = await api.getClaims();
+      // Attach item title by fetching items list once
+      const { items } = await api.getItems();
+      const itemMap = Object.fromEntries(items.map((i) => [i.id, i]));
+      return claims
+        .filter((c) => c.claimant_id === user!.id)
+        .map((c) => ({
+          ...c,
+          items: itemMap[c.item_id]
+            ? { title: itemMap[c.item_id].title, item_type: itemMap[c.item_id].item_type }
+            : null,
+        })) as ClaimWithItem[];
     },
   });
 
