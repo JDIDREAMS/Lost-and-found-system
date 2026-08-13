@@ -17,12 +17,12 @@ export default defineConfig({
       proxy: {
         // Forward all /api/* requests to the Express backend (avoids browser CORS blocks)
         "/api": {
-          target: "http://localhost:5000",
+          target: "http://127.0.0.1:5000",
           changeOrigin: true,
         },
         // Forward uploaded image requests to the backend static file server
         "/uploads": {
-          target: "http://localhost:5000",
+          target: "http://127.0.0.1:5000",
           changeOrigin: true,
         },
       },

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/lib/api";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,25 @@ function ClaimThread() {
     queryKey: ["claim", claimId],
     enabled: !!user,
     queryFn: async () => {
+      // 1. Try Express API first (works for JWT-auth users)
+      try {
+        const { claim: apiClaim, item: apiItem } = await api.getClaimById(claimId);
+        if (apiClaim) {
+          return {
+            id: apiClaim.id,
+            status: apiClaim.status as ClaimStatus,
+            message: apiClaim.message,
+            created_at: apiClaim.created_at,
+            claimant_id: apiClaim.claimant_id,
+            item_id: apiClaim.item_id,
+            items: apiItem ? { title: apiItem.title, posted_by: apiItem.posted_by } : null,
+          } as ClaimDetail;
+        }
+      } catch (err) {
+        console.warn("Express API getClaimById failed, falling back to Supabase...", err);
+      }
+
+      // 2. Fallback to Supabase (works for Supabase-auth users)
       const { data, error } = await supabase
         .from("claims")
         .select("id, status, message, created_at, claimant_id, item_id, items(title, posted_by)")
@@ -77,6 +97,15 @@ function ClaimThread() {
     queryKey: ["claim-messages", claimId],
     enabled: !!user,
     queryFn: async () => {
+      // 1. Try Express API first
+      try {
+        const { messages: apiMsgs } = await api.getMessages(claimId);
+        return (apiMsgs ?? []) as MessageRow[];
+      } catch (err) {
+        console.warn("Express API getMessages failed, falling back to Supabase...", err);
+      }
+
+      // 2. Fallback to Supabase
       const { data, error } = await supabase
         .from("messages")
         .select("id, sender_id, text, created_at")
@@ -87,6 +116,7 @@ function ClaimThread() {
     },
   });
 
+  // Real-time listener for Supabase-stored messages
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -113,6 +143,17 @@ function ClaimThread() {
     const body = draft.trim();
     if (!body || !user) return;
     setDraft("");
+
+    // 1. Try Express API first
+    try {
+      await api.sendMessage(claimId, body);
+      void qc.invalidateQueries({ queryKey: ["claim-messages", claimId] });
+      return;
+    } catch (err) {
+      console.warn("Express API sendMessage failed, falling back to Supabase...", err);
+    }
+
+    // 2. Fallback to Supabase
     const { error } = await supabase
       .from("messages")
       .insert({ claim_id: claimId, sender_id: user.id, text: body });

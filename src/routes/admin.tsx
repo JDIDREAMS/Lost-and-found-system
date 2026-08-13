@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/lib/api";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,12 +50,17 @@ function Admin() {
     queryKey: ["admin-items"],
     enabled: !!isAdmin,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("items")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as ItemRow[];
+      try {
+        const { items } = await api.getItems();
+        return items as unknown as ItemRow[];
+      } catch {
+        const { data, error } = await supabase
+          .from("items")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        return (data ?? []) as ItemRow[];
+      }
     },
   });
 
@@ -62,18 +68,27 @@ function Admin() {
     queryKey: ["admin-claim-count"],
     enabled: !!isAdmin,
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from("claims")
-        .select("id", { count: "exact", head: true });
-      if (error) throw error;
-      return count ?? 0;
+      try {
+        const { claims } = await api.getClaims();
+        return claims.length;
+      } catch {
+        const { count, error } = await supabase
+          .from("claims")
+          .select("id", { count: "exact", head: true });
+        if (error) throw error;
+        return count ?? 0;
+      }
     },
   });
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("items").delete().eq("id", id);
-      if (error) throw error;
+      try {
+        await api.deleteItem(id);
+      } catch {
+        const { error } = await supabase.from("items").delete().eq("id", id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       toast.success("Listing removed.");

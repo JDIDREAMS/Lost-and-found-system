@@ -1,7 +1,7 @@
 // Use relative URLs so the Vite dev proxy forwards them to Express (port 5000).
 // In production, set VITE_API_URL to the deployed backend URL.
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
-const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+const API_BASE_URL = import.meta.env["VITE_API_URL"] || "/api";
+const BACKEND_BASE_URL = import.meta.env["VITE_BACKEND_URL"] || "";
 
 export interface User {
   id: string;
@@ -11,6 +11,7 @@ export interface User {
   isStudentVerified: boolean;
   role: string;
 }
+
 
 export interface Item {
   id: string;
@@ -106,7 +107,7 @@ export function getImageUrl(path: string | null): string | null {
 
 export const api = {
   // Auth
-  register: (payload: { email: string; password: string; name?: string; studentId?: string }) =>
+  register: (payload: { email: string; password: string; name?: string | undefined; studentId?: string | undefined }) =>
     request<{ token: string; user: User }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(payload),

@@ -98,8 +98,8 @@ function AuthPage() {
       const { token } = await api.register({
         email,
         password,
-        name: name.trim() || undefined,
-        studentId: studentId.trim() || undefined,
+        ...(name.trim() ? { name: name.trim() } : {}),
+        ...(studentId.trim() ? { studentId: studentId.trim() } : {}),
       });
       setAuthToken(token);
       await refreshUser();

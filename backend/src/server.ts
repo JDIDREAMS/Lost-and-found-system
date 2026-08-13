@@ -49,10 +49,10 @@ app.use((err: unknown, _req: express.Request, res: express.Response, _next: expr
   res.status(500).json({ error: "Internal Server Error", details: String(err) });
 });
 
-app.listen(PORT, () => {
+app.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`=================================================`);
   console.log(`🚀 FoundIt Backend API Server running on port ${PORT}`);
-  console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
-  console.log(`📁 Uploads Static Dir: http://localhost:${PORT}/uploads`);
+  console.log(`🔗 API Base URL: http://127.0.0.1:${PORT}/api`);
+  console.log(`📁 Uploads Static Dir: http://127.0.0.1:${PORT}/uploads`);
   console.log(`=================================================`);
 });

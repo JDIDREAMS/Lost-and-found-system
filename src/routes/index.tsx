@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Search, HandHeart, MessagesSquare, ShieldCheck } from "lucide-react";
 import heroImage from "@/assets/hero-lostfound.jpg";
 import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
 import { ItemCard } from "@/components/ItemCard";
 import { Button } from "@/components/ui/button";
@@ -31,32 +32,46 @@ function Index() {
   const { data: recent } = useQuery({
     queryKey: ["items", "recent"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("items")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(6);
-      if (error) throw error;
-      return (data ?? []) as ItemRow[];
+      try {
+        const { items } = await api.getItems();
+        return items.slice(0, 6) as unknown as ItemRow[];
+      } catch {
+        const { data, error } = await supabase
+          .from("items")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(6);
+        if (error) throw error;
+        return (data ?? []) as ItemRow[];
+      }
     },
   });
 
   const { data: stats } = useQuery({
     queryKey: ["items", "stats"],
     queryFn: async () => {
-      const [total, resolved, found] = await Promise.all([
-        supabase.from("items").select("*", { count: "exact", head: true }),
-        supabase
-          .from("items")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "resolved"),
-        supabase.from("items").select("*", { count: "exact", head: true }).eq("item_type", "found"),
-      ]);
-      return {
-        total: total.count ?? 0,
-        resolved: resolved.count ?? 0,
-        found: found.count ?? 0,
-      };
+      try {
+        const { items } = await api.getItems();
+        return {
+          total: items.length,
+          resolved: items.filter((i) => i.status === "resolved").length,
+          found: items.filter((i) => i.item_type === "found").length,
+        };
+      } catch {
+        const [total, resolved, found] = await Promise.all([
+          supabase.from("items").select("*", { count: "exact", head: true }),
+          supabase
+            .from("items")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "resolved"),
+          supabase.from("items").select("*", { count: "exact", head: true }).eq("item_type", "found"),
+        ]);
+        return {
+          total: total.count ?? 0,
+          resolved: resolved.count ?? 0,
+          found: found.count ?? 0,
+        };
+      }
     },
   });
 

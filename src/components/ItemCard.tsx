@@ -14,6 +14,7 @@ export function ItemCard({ item }: { item: ItemRow }) {
       <div className="relative aspect-[4/3] overflow-hidden border-b border-foreground/15">
         <ItemImage
           path={item.image_url}
+          category={item.category}
           alt={item.title}
           className="size-full transition-transform duration-500 group-hover:scale-105"
         />

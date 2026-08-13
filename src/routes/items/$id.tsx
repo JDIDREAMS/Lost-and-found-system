@@ -2,20 +2,21 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CalendarDays, MapPin, Mail, Loader2, Trash2, ArrowLeft } from "lucide-react";
+import { CalendarDays, MapPin, Mail, Loader2, Trash2, ArrowLeft, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/lib/api";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
 import { ItemImage, parseImagePaths } from "@/components/ItemImage";
 
-function ItemGallery({ imagePayload, title }: { imagePayload: string | null; title: string }) {
+function ItemGallery({ imagePayload, category, title }: { imagePayload: string | null; category?: string; title: string }) {
   const images = parseImagePaths(imagePayload);
   const [selectedIdx, setSelectedIdx] = useState(0);
 
   if (images.length <= 1) {
     return (
       <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
-        <ItemImage path={images[0] ?? null} alt={title} eager className="aspect-[4/3] w-full" />
+        <ItemImage path={images[0] ?? null} category={category} alt={title} eager className="aspect-[4/3] w-full" />
       </div>
     );
   }
@@ -23,7 +24,7 @@ function ItemGallery({ imagePayload, title }: { imagePayload: string | null; tit
   return (
     <div className="space-y-3">
       <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
-        <ItemImage path={images[selectedIdx] ?? images[0] ?? null} alt={`${title} image ${selectedIdx + 1}`} eager className="aspect-[4/3] w-full" />
+        <ItemImage path={images[selectedIdx] ?? images[0] ?? null} category={category} alt={`${title} image ${selectedIdx + 1}`} eager className="aspect-[4/3] w-full" />
       </div>
       <div className="flex flex-wrap gap-2">
         {images.map((path, idx) => (
@@ -35,7 +36,7 @@ function ItemGallery({ imagePayload, title }: { imagePayload: string | null; tit
               selectedIdx === idx ? "ring-2 ring-primary border-primary" : "opacity-70 hover:opacity-100"
             }`}
           >
-            <ItemImage path={path} alt={`${title} thumbnail ${idx + 1}`} className="h-full w-full object-cover" />
+            <ItemImage path={path} category={category} alt={`${title} thumbnail ${idx + 1}`} className="h-full w-full object-cover" />
           </button>
         ))}
       </div>
@@ -91,6 +92,12 @@ function ItemDetail() {
   const { data: item, isLoading } = useQuery({
     queryKey: ["item", id],
     queryFn: async () => {
+      try {
+        const { item } = await api.getItemById(id);
+        if (item) return item as unknown as ItemRow;
+      } catch (err) {
+        console.warn("Express API getItemById failed, falling back to Supabase...", err);
+      }
       const { data, error } = await supabase.from("items").select("*").eq("id", id).maybeSingle();
       if (error) throw error;
       return data as ItemRow | null;
@@ -101,13 +108,18 @@ function ItemDetail() {
     queryKey: ["item-claims", id, user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("claims")
-        .select("id, claimant_id, message, status, created_at")
-        .eq("item_id", id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as ClaimRow[];
+      try {
+        const { claims } = await api.getClaims(id);
+        return claims as unknown as ClaimRow[];
+      } catch {
+        const { data, error } = await supabase
+          .from("claims")
+          .select("id, claimant_id, message, status, created_at")
+          .eq("item_id", id)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        return (data ?? []) as ClaimRow[];
+      }
     },
   });
 
@@ -117,10 +129,14 @@ function ItemDetail() {
   const submitClaim = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Sign in to submit a claim.");
-      const { error } = await supabase
-        .from("claims")
-        .insert({ item_id: id, claimant_id: user.id, message: claimText.trim() });
-      if (error) throw error;
+      try {
+        await api.submitClaim(id, claimText.trim());
+      } catch {
+        const { error } = await supabase
+          .from("claims")
+          .insert({ item_id: id, claimant_id: user.id, message: claimText.trim() });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       setClaimText("");
@@ -132,10 +148,14 @@ function ItemDetail() {
 
   const decideClaim = useMutation({
     mutationFn: async ({ claimId, status }: { claimId: string; status: ClaimStatus }) => {
-      const { error } = await supabase.from("claims").update({ status }).eq("id", claimId);
-      if (error) throw error;
-      if (status === "approved") {
-        await supabase.from("items").update({ status: "claimed" }).eq("id", id);
+      try {
+        await api.updateClaimStatus(claimId, status);
+      } catch {
+        const { error } = await supabase.from("claims").update({ status }).eq("id", claimId);
+        if (error) throw error;
+        if (status === "approved") {
+          await supabase.from("items").update({ status: "claimed" }).eq("id", id);
+        }
       }
     },
     onSuccess: () => {
@@ -148,8 +168,12 @@ function ItemDetail() {
 
   const setStatus = useMutation({
     mutationFn: async (status: ItemStatus) => {
-      const { error } = await supabase.from("items").update({ status }).eq("id", id);
-      if (error) throw error;
+      try {
+        await api.updateItem(id, { status });
+      } catch {
+        const { error } = await supabase.from("items").update({ status }).eq("id", id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       toast.success("Status updated.");
@@ -159,8 +183,12 @@ function ItemDetail() {
 
   const removeItem = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("items").delete().eq("id", id);
-      if (error) throw error;
+      try {
+        await api.deleteItem(id);
+      } catch {
+        const { error } = await supabase.from("items").delete().eq("id", id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       toast.success("Item removed.");
@@ -189,7 +217,7 @@ function ItemDetail() {
           </div>
         ) : (
           <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
-            <ItemGallery imagePayload={item.image_url} title={item.title} />
+            <ItemGallery imagePayload={item.image_url} category={item.category} title={item.title} />
 
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -317,11 +345,27 @@ function ItemDetail() {
                         You submitted a claim — status:{" "}
                         <span className="font-medium text-foreground">{myClaim.status}</span>.
                       </p>
-                      <Button className="mt-4" variant="outline" asChild>
-                        <Link to="/claims/$claimId" params={{ claimId: myClaim.id }}>
-                          Open message thread
-                        </Link>
-                      </Button>
+                      {item.item_type === "found" && item.contact_info ? (
+                        <Button
+                          className="mt-4 gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white"
+                          asChild
+                        >
+                          <a
+                            href={`https://wa.me/${item.contact_info.replace(/\D/g, "")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <MessageCircle className="size-4" />
+                            Chat on WhatsApp
+                          </a>
+                        </Button>
+                      ) : (
+                        <Button className="mt-4" variant="outline" asChild>
+                          <Link to="/claims/$claimId" params={{ claimId: myClaim.id }}>
+                            Open message thread
+                          </Link>
+                        </Button>
+                      )}
                     </>
                   ) : (
                     <>

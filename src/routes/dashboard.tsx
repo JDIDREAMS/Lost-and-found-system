@@ -66,12 +66,13 @@ function Dashboard() {
       const itemMap = Object.fromEntries(items.map((i) => [i.id, i]));
       return claims
         .filter((c) => c.claimant_id === user!.id)
-        .map((c) => ({
-          ...c,
-          items: itemMap[c.item_id]
-            ? { title: itemMap[c.item_id].title, item_type: itemMap[c.item_id].item_type }
-            : null,
-        })) as ClaimWithItem[];
+        .map((c) => {
+          const matchedItem = itemMap[c.item_id];
+          return {
+            ...c,
+            items: matchedItem ? { title: matchedItem.title, item_type: matchedItem.item_type } : null,
+          };
+        }) as ClaimWithItem[];
     },
   });
 

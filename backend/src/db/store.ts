@@ -82,7 +82,7 @@ const SEED_ITEMS: ItemRecord[] = [
     item_type: "found",
     location: "Central Library, 2nd floor",
     date_occurred: "2026-07-28",
-    image_url: null,
+    image_url: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=800&auto=format&fit=crop&q=80",
     status: "open",
     contact_info: "priya@example.com",
     posted_by: "demo-user-1",
@@ -98,7 +98,7 @@ const SEED_ITEMS: ItemRecord[] = [
     item_type: "lost",
     location: "Bus route 14, near City Square",
     date_occurred: "2026-07-30",
-    image_url: null,
+    image_url: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&auto=format&fit=crop&q=80",
     status: "open",
     contact_info: "arun@example.com",
     posted_by: "demo-user-2",
@@ -114,7 +114,7 @@ const SEED_ITEMS: ItemRecord[] = [
     item_type: "found",
     location: "Riverside Park, near the fountain",
     date_occurred: "2026-08-01",
-    image_url: null,
+    image_url: "https://images.unsplash.com/photo-1582139329536-e7284fece509?w=800&auto=format&fit=crop&q=80",
     status: "open",
     contact_info: "maya@example.com",
     posted_by: "demo-user-3",
@@ -130,7 +130,7 @@ const SEED_ITEMS: ItemRecord[] = [
     item_type: "found",
     location: "Elm Street playground",
     date_occurred: "2026-07-31",
-    image_url: null,
+    image_url: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&auto=format&fit=crop&q=80",
     status: "claimed",
     contact_info: "daniel@example.com",
     posted_by: "demo-user-4",
@@ -146,7 +146,7 @@ const SEED_ITEMS: ItemRecord[] = [
     item_type: "lost",
     location: "Engineering Block, Room 204",
     date_occurred: "2026-07-26",
-    image_url: null,
+    image_url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&auto=format&fit=crop&q=80",
     status: "open",
     contact_info: "sofia@example.com",
     posted_by: "demo-user-5",
@@ -197,10 +197,15 @@ class Store {
       if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
       }
-      // Atomic write: write to a temp file then rename so db.json is never partially written
-      const tmpFile = DB_FILE + ".tmp";
-      fs.writeFileSync(tmpFile, JSON.stringify(this.db, null, 2), "utf-8");
-      fs.renameSync(tmpFile, DB_FILE);
+      const dataStr = JSON.stringify(this.db, null, 2);
+      try {
+        const tmpFile = DB_FILE + ".tmp";
+        fs.writeFileSync(tmpFile, dataStr, "utf-8");
+        fs.renameSync(tmpFile, DB_FILE);
+      } catch {
+        // Fallback for Windows/OneDrive file lock issues
+        fs.writeFileSync(DB_FILE, dataStr, "utf-8");
+      }
     } catch (err) {
       console.error(`[${new Date().toISOString()}] Error saving DB store:`, err);
     }

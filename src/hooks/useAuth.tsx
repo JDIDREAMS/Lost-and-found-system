@@ -7,7 +7,7 @@ interface UserCompat {
   email?: string;
   user_metadata?: {
     display_name?: string;
-    student_id?: string;
+    student_id?: string | undefined;
     is_student_verified?: boolean;
   };
 }
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               is_student_verified: apiUser.isStudentVerified,
             },
           });
-          setDisplayName(apiUser.displayName || apiUser.email.split("@")[0]);
+          setDisplayName(apiUser.displayName || (apiUser.email ? apiUser.email.split("@")[0]! : "Member"));
           setIsAdmin(apiUser.role === "admin");
           setIsStudentVerified(apiUser.isStudentVerified);
           setStudentId(apiUser.studentId ?? null);

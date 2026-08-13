@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { api } from "@/lib/api";
 import { CATEGORIES, type ItemRow } from "@/lib/lostfound";
 
 export const Route = createFileRoute("/browse")({
@@ -51,12 +52,18 @@ function Browse() {
   const { data, isLoading } = useQuery({
     queryKey: ["items", "all"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("items")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as ItemRow[];
+      try {
+        const { items } = await api.getItems();
+        return items as unknown as ItemRow[];
+      } catch (err) {
+        console.warn("Express API getItems failed, falling back to Supabase...", err);
+        const { data, error } = await supabase
+          .from("items")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        return (data ?? []) as ItemRow[];
+      }
     },
   });
 

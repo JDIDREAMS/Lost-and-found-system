@@ -88,7 +88,7 @@ function PostItem() {
       try {
         if (files.length > 0) {
           const urls = await api.uploadPhotos(files);
-          imagePayload = urls.length === 1 ? urls[0] : JSON.stringify(urls);
+          imagePayload = urls.length === 1 ? (urls[0] ?? null) : JSON.stringify(urls);
         }
         const { item: newItem } = await api.createItem({
           title: title.trim(),
@@ -161,7 +161,7 @@ function PostItem() {
         </p>
 
         <form onSubmit={submit} className="mt-8 space-y-5 rounded-2xl border bg-card p-6 shadow-soft">
-          <Tabs value={type} onValueChange={(v) => setType(v as ItemType)}>
+          <Tabs value={type} onValueChange={(v) => { setType(v as ItemType); setContact(""); }}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="lost">I lost something</TabsTrigger>
               <TabsTrigger value="found">I found something</TabsTrigger>
@@ -232,13 +232,45 @@ function PostItem() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="contact">Contact note (optional)</Label>
-            <Input
-              id="contact"
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-              placeholder="Best reached in the evenings"
-            />
+            {type === "found" ? (
+              <>
+                <Label htmlFor="contact">
+                  WhatsApp number{" "}
+                  <span className="text-xs font-normal text-muted-foreground">(so the owner can reach you)</span>
+                </Label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground select-none">
+                    +
+                  </span>
+                  <Input
+                    id="contact"
+                    type="tel"
+                    required
+                    className="pl-6"
+                    value={contact}
+                    onChange={(e) => {
+                      // Strip everything except digits and leading +
+                      const raw = e.target.value.replace(/[^\d]/g, "");
+                      setContact(raw);
+                    }}
+                    placeholder="2348012345678"
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Enter your full number with country code, e.g. 2348012345678
+                </p>
+              </>
+            ) : (
+              <>
+                <Label htmlFor="contact">Contact note <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
+                <Input
+                  id="contact"
+                  value={contact}
+                  onChange={(e) => setContact(e.target.value)}
+                  placeholder="Best reached in the evenings"
+                />
+              </>
+            )}
           </div>
 
           <div className="space-y-2">

@@ -29,9 +29,99 @@
       "isStudentVerified": true,
       "role": "user",
       "createdAt": "2026-08-06T10:36:57.592Z"
+    },
+    {
+      "id": "c573a8a0-e1bf-40d8-b421-6f5bcaca86c4",
+      "email": "testuser@university.edu",
+      "passwordHash": "$2b$10$e/lXqB/CRNzHUg3FudEzo.MoDp9Gkk5iLjv6XO0W8ppztpaJNxDfK",
+      "displayName": "Test User",
+      "studentId": null,
+      "isStudentVerified": true,
+      "role": "user",
+      "createdAt": "2026-08-11T15:30:31.199Z"
+    },
+    {
+      "id": "2c3fff5a-b8a4-456f-a621-91fc5ec7c795",
+      "email": "newuser2@university.edu",
+      "passwordHash": "$2b$10$XvLJpq5pAU1nZ60vSAkKfusiezAf7ndZa9LmZ0mTFhw59or5BOHkS",
+      "displayName": "New User 2",
+      "studentId": null,
+      "isStudentVerified": true,
+      "role": "user",
+      "createdAt": "2026-08-11T15:32:35.861Z"
+    },
+    {
+      "id": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "email": "benedictokai13@gmail.com",
+      "passwordHash": "$2b$10$cymLYpB7yLx47pi2ByrBXeRZsGe.B4KsVS503..3DRDeCSOCCt4Ee",
+      "displayName": "Benedict Okai",
+      "studentId": "21036275",
+      "isStudentVerified": true,
+      "role": "user",
+      "createdAt": "2026-08-11T15:33:19.899Z",
+      "resetToken": "415d12797f41ad40ae4a1cfc6bfb84ac42185e50a9bbc14e501a16aae6a23a0d",
+      "resetTokenExpires": 1786645773043
+    },
+    {
+      "id": "f13a103e-cc60-4499-8087-1525e1b38e20",
+      "email": "kpetigojoseph4@mail.com",
+      "passwordHash": "$2b$10$aYu1VMHJlrauDu2i.xn/f.NsJAQbNU8Zt9I3lCsvtLGYZL182Z3Ii",
+      "displayName": "kpetigo joseph",
+      "studentId": "2424715612",
+      "isStudentVerified": true,
+      "role": "user",
+      "createdAt": "2026-08-12T13:34:43.068Z"
+    },
+    {
+      "id": "00fc7c56-4d1f-4dc1-b470-b7352dfbf883",
+      "email": "kpetigojoseph4@gmail.com",
+      "passwordHash": "$2b$10$pwGad7D7we.6SekQqBg9yOjDXOjVwrttlek/VP.TjFMO7mZ0ZJwEm",
+      "displayName": "kpetigojoseph4",
+      "studentId": null,
+      "isStudentVerified": false,
+      "role": "user",
+      "createdAt": "2026-08-12T13:35:44.141Z",
+      "resetToken": "ad8f6e2142174a51fb91fcc74edd19f902b09ebb2c9888d4c3a01e17469d19d1",
+      "resetTokenExpires": 1786545580586
+    },
+    {
+      "id": "4e4bba74-2758-4dff-8d99-29dd4b2ee802",
+      "email": "benedictokai5@gmail.com",
+      "passwordHash": "$2b$10$ES98FavHdjVaIA79VdrE7uMWICYc64YuqzhM2cmdYVktUwl8jjYcq",
+      "displayName": "jdi",
+      "studentId": "21036275",
+      "isStudentVerified": true,
+      "role": "user",
+      "createdAt": "2026-08-13T14:37:38.638Z"
+    },
+    {
+      "id": "49fdd4c1-e127-4c53-b6fb-90562a98eb06",
+      "email": "marvinopoku18@gmail.com",
+      "passwordHash": "$2b$10$aY6YTCq0WUTYaLCxb8XNaequdCSLkknYKbY10JP10L0kwdNdjmUje",
+      "displayName": "Marvin Opoku",
+      "studentId": "21018404",
+      "isStudentVerified": true,
+      "role": "user",
+      "createdAt": "2026-08-13T16:24:25.548Z"
     }
   ],
   "items": [
+    {
+      "id": "26204a33-ba99-409e-94e5-2998945e25c7",
+      "title": "cell",
+      "description": "iphone 13pro max gold",
+      "category": "Electronics",
+      "item_type": "lost",
+      "location": "college of science",
+      "date_occurred": "2026-08-11",
+      "image_url": "[\"/uploads/fa188545-ea5d-429a-996a-60def0bc7413.JPG\",\"/uploads/9c8f1513-9ef8-48d9-97d0-d666092ce361.JPG\"]",
+      "status": "open",
+      "contact_info": "0202871710",
+      "posted_by": "49fdd4c1-e127-4c53-b6fb-90562a98eb06",
+      "poster_name": "Marvin Opoku",
+      "created_at": "2026-08-13T16:31:07.851Z",
+      "updated_at": "2026-08-13T16:31:07.851Z"
+    },
     {
       "id": "ba64a6c4-b41c-411b-8d79-f8805a26153f",
       "title": "hfjfjjfjf",
@@ -161,7 +251,57 @@
       "updated_at": "2026-07-28T14:36:37.480Z"
     }
   ],
-  "claims": [],
+  "claims": [
+    {
+      "id": "9951ce34-9737-474e-93a8-19db01d9fa92",
+      "item_id": "ba64a6c4-b41c-411b-8d79-f8805a26153f",
+      "claimant_id": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "message": "cccccvwvsdvm",
+      "status": "pending",
+      "created_at": "2026-08-13T14:12:09.366Z"
+    },
+    {
+      "id": "bd6d599b-d7b7-4a9a-a900-61ef54260335",
+      "item_id": "item-2",
+      "claimant_id": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "message": "hdhjsdfhjdsblgds",
+      "status": "pending",
+      "created_at": "2026-08-13T14:09:36.492Z"
+    },
+    {
+      "id": "e1e518b0-b582-4dd4-944f-8b1b38c14b27",
+      "item_id": "item-1",
+      "claimant_id": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "message": "fdgdhjhhchbchbkhbczhbhcb,hbcn,b n",
+      "status": "pending",
+      "created_at": "2026-08-11T15:42:45.075Z"
+    }
+  ],
   "messages": [],
-  "notifications": []
+  "notifications": [
+    {
+      "id": "0faa94d2-0d86-4640-b4cc-fac6b39461b3",
+      "user_id": "e8419da8-d500-49bc-af33-d9e5607cd224",
+      "text": "Benedict Okai submitted a claim on \"hfjfjjfjf\"",
+      "link": "/claims/9951ce34-9737-474e-93a8-19db01d9fa92",
+      "is_read": false,
+      "created_at": "2026-08-13T14:12:09.369Z"
+    },
+    {
+      "id": "dbccc902-1eb1-413e-bdc5-984facdd5b6d",
+      "user_id": "demo-user-2",
+      "text": "Benedict Okai submitted a claim on \"Silver MacBook Air 13\"\"",
+      "link": "/claims/bd6d599b-d7b7-4a9a-a900-61ef54260335",
+      "is_read": false,
+      "created_at": "2026-08-13T14:09:36.501Z"
+    },
+    {
+      "id": "dde0568c-91b0-4173-bfaa-6e1c4fef9173",
+      "user_id": "demo-user-1",
+      "text": "Benedict Okai submitted a claim on \"Black leather wallet\"",
+      "link": "/claims/e1e518b0-b582-4dd4-944f-8b1b38c14b27",
+      "is_read": false,
+      "created_at": "2026-08-11T15:42:45.103Z"
+    }
+  ]
 }
