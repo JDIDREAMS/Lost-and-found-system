@@ -81,6 +81,17 @@ describe("Validation Schemas", () => {
       expect(valid.success).toBe(true);
     });
 
+    it("validates structured proof of ownership fields", () => {
+      const valid = claimSchema.safeParse({
+        brand: "Apple",
+        unique_marks: "Sticker of a cat on the back right corner",
+        contents_description: "Contains student card and gym pass",
+        serial_fragment: "Last 4 digits: 9021",
+        message: "I lost this laptop on Thursday in the library study room.",
+      });
+      expect(valid.success).toBe(true);
+    });
+
     it("rejects vague or single-word claims", () => {
       const invalid = claimSchema.safeParse({
         message: "mine",

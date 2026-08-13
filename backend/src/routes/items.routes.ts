@@ -10,12 +10,7 @@ router.get("/", optionalAuth, ItemsController.list);
 router.get("/smart-matches/mine", requireAuth, ItemsController.getMySmartMatches);
 router.get("/:id", optionalAuth, ItemsController.getById);
 router.get("/:id/matches", optionalAuth, ItemsController.getMatches);
-router.post(
-  "/",
-  requireAuth,
-  validateRequest({ body: createItemSchema }),
-  ItemsController.create,
-);
+router.post("/", requireAuth, validateRequest({ body: createItemSchema }), ItemsController.create);
 router.patch(
   "/:id",
   requireAuth,

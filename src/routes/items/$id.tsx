@@ -10,6 +10,8 @@ import {
   Trash2,
   ArrowLeft,
   MessageCircle,
+  ShieldCheck,
+  Tag,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +19,10 @@ import { api } from "@/lib/api";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
 import { ItemImage, parseImagePaths } from "@/components/ItemImage";
 import { SmartMatchesWidget } from "@/components/SmartMatchesWidget";
+import { ClaimSubmissionDialog } from "@/components/ClaimSubmissionDialog";
+import { ClaimDecisionDialog } from "@/components/ClaimDecisionDialog";
+import { ReportDialog } from "@/components/ReportDialog";
+import { TrustBadge } from "@/components/TrustBadge";
 
 function ItemGallery({
   imagePayload,
@@ -98,6 +104,8 @@ import {
   type ItemStatus,
 } from "@/lib/lostfound";
 
+import type { ProofDetails } from "@/lib/api";
+
 export const Route = createFileRoute("/items/$id")({
   head: () => ({
     meta: [
@@ -121,6 +129,8 @@ interface ClaimRow {
   id: string;
   claimant_id: string;
   message: string;
+  proof_details?: ProofDetails | null;
+  decision_reason?: string | null;
   status: ClaimStatus;
   created_at: string;
 }
@@ -148,7 +158,7 @@ function ItemDetail() {
   });
 
   const { data: claims } = useQuery({
-    queryKey: ["item-claims", id, user?.id],
+    queryKey: ["claims", id],
     enabled: !!user,
     queryFn: async () => {
       try {
@@ -267,17 +277,26 @@ function ItemDetail() {
             />
 
             <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant={item.item_type === "lost" ? "lost" : "found"} className="uppercase">
-                  {item.item_type}
-                </Badge>
-                <Badge variant="muted">{item.category}</Badge>
-                <Badge variant="outline">{statusLabel[item.status]}</Badge>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant={item.item_type === "lost" ? "lost" : "found"} className="uppercase">
+                    {item.item_type}
+                  </Badge>
+                  <Badge variant="muted">{item.category}</Badge>
+                  <Badge variant="outline">{statusLabel[item.status]}</Badge>
+                </div>
+                {!isOwner && (
+                  <ReportDialog
+                    targetType="item"
+                    targetId={item.id}
+                    targetTitle={item.title}
+                  />
+                )}
               </div>
               <h1 className="mt-4 text-3xl font-semibold">{item.title}</h1>
               <p className="mt-3 whitespace-pre-line text-muted-foreground">{item.description}</p>
 
-              <dl className="mt-6 space-y-2 text-sm">
+              <dl className="mt-6 space-y-2.5 text-sm">
                 <div className="flex items-center gap-2">
                   <MapPin className="size-4 text-primary" />
                   <span>{item.location || "Location not specified"}</span>
@@ -289,9 +308,12 @@ function ItemDetail() {
                     {formatDate(item.date_occurred)}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Mail className="size-4 text-primary" />
-                  <span>Posted by {item.poster_name}</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <Mail className="size-4 text-primary" />
+                    <span>Posted by {item.poster_name}</span>
+                  </div>
+                  <TrustBadge userId={item.posted_by} compact />
                 </div>
               </dl>
 
@@ -324,51 +346,119 @@ function ItemDetail() {
                   <h3 className="mt-6 text-sm font-semibold">
                     Claim requests ({claims?.length ?? 0})
                   </h3>
-                  <ul className="mt-3 space-y-3">
-                    {(claims ?? []).map((c) => (
-                      <li key={c.id} className="rounded-xl border p-4">
-                        <p className="text-sm">{c.message}</p>
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <Badge
-                            variant={
-                              c.status === "approved"
-                                ? "found"
-                                : c.status === "rejected"
-                                  ? "destructive"
-                                  : "muted"
-                            }
-                          >
-                            {c.status}
-                          </Badge>
-                          {c.status === "pending" && (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={() =>
-                                  decideClaim.mutate({ claimId: c.id, status: "approved" })
-                                }
-                              >
-                                Approve
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() =>
-                                  decideClaim.mutate({ claimId: c.id, status: "rejected" })
-                                }
-                              >
-                                Reject
-                              </Button>
-                            </>
+                  <ul className="mt-3 space-y-4">
+                    {(claims ?? []).map((c) => {
+                      const proof = c.proof_details;
+                      return (
+                        <li key={c.id} className="rounded-xl border bg-surface/50 p-4 shadow-sm">
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2.5">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                              Claim Proof Submission
+                            </span>
+                            <Badge
+                              variant={
+                                c.status === "approved"
+                                  ? "found"
+                                  : c.status === "rejected"
+                                    ? "destructive"
+                                    : "muted"
+                              }
+                            >
+                              {c.status}
+                            </Badge>
+                          </div>
+
+                          {/* Structured Proof Details */}
+                          {proof &&
+                            (proof.brand ||
+                              proof.unique_marks ||
+                              proof.contents_description ||
+                              proof.serial_fragment) && (
+                              <div className="mt-3 grid gap-2 rounded-lg bg-muted/60 p-3 text-xs sm:grid-cols-2">
+                                {proof.brand && (
+                                  <div>
+                                    <span className="font-semibold text-muted-foreground">
+                                      Brand / Make:{" "}
+                                    </span>
+                                    <span className="text-foreground">{proof.brand}</span>
+                                  </div>
+                                )}
+                                {proof.serial_fragment && (
+                                  <div>
+                                    <span className="font-semibold text-muted-foreground">
+                                      Serial / Ending:{" "}
+                                    </span>
+                                    <span className="text-foreground">{proof.serial_fragment}</span>
+                                  </div>
+                                )}
+                                {proof.unique_marks && (
+                                  <div className="sm:col-span-2">
+                                    <span className="font-semibold text-muted-foreground">
+                                      Unique Marks:{" "}
+                                    </span>
+                                    <span className="text-foreground">{proof.unique_marks}</span>
+                                  </div>
+                                )}
+                                {proof.contents_description && (
+                                  <div className="sm:col-span-2">
+                                    <span className="font-semibold text-muted-foreground">
+                                      Contents / Inside:{" "}
+                                    </span>
+                                    <span className="text-foreground">
+                                      {proof.contents_description}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                          <div className="mt-3">
+                            <p className="text-xs font-semibold text-muted-foreground">
+                              Statement:
+                            </p>
+                            <p className="mt-1 text-sm text-foreground">{c.message}</p>
+                          </div>
+
+                          {c.decision_reason && (
+                            <div className="mt-3 rounded-lg border border-border/80 bg-background p-2.5 text-xs text-muted-foreground">
+                              <span className="font-semibold text-foreground">Decision Note: </span>
+                              {c.decision_reason}
+                            </div>
                           )}
-                          <Button size="sm" variant="ghost" asChild>
-                            <Link to="/claims/$claimId" params={{ claimId: c.id }}>
-                              Open thread
-                            </Link>
-                          </Button>
-                        </div>
-                      </li>
-                    ))}
+
+                          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/40">
+                            <div className="flex items-center gap-2">
+                              {c.status === "pending" && (
+                                <>
+                                  <ClaimDecisionDialog
+                                    claimId={c.id}
+                                    itemTitle={item.title}
+                                    mode="approved"
+                                    onSuccess={() => {
+                                      void qc.invalidateQueries({ queryKey: ["claims", id] });
+                                      void qc.invalidateQueries({ queryKey: ["item", id] });
+                                    }}
+                                  />
+                                  <ClaimDecisionDialog
+                                    claimId={c.id}
+                                    itemTitle={item.title}
+                                    mode="rejected"
+                                    onSuccess={() => {
+                                      void qc.invalidateQueries({ queryKey: ["claims", id] });
+                                    }}
+                                  />
+                                </>
+                              )}
+                            </div>
+                            <Button size="sm" variant="ghost" className="text-xs" asChild>
+                              <Link to="/claims/$claimId" params={{ claimId: c.id }}>
+                                Open thread →
+                              </Link>
+                            </Button>
+                          </div>
+                        </li>
+                      );
+                    })}
                     {claims?.length === 0 && (
                       <li className="text-sm text-muted-foreground">No claims yet.</li>
                     )}
@@ -376,25 +466,47 @@ function ItemDetail() {
                 </div>
               ) : (
                 <div className="mt-8 rounded-2xl border bg-card p-5 shadow-soft">
-                  <h2 className="text-lg font-semibold">Is this yours?</h2>
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="size-5 text-primary" />
+                    <h2 className="text-lg font-semibold">Is this yours?</h2>
+                  </div>
                   {!user ? (
                     <>
                       <p className="mt-2 text-sm text-muted-foreground">
-                        Sign in to submit a claim with proof of ownership.
+                        Sign in to submit a claim with structured proof of ownership.
                       </p>
                       <Button className="mt-4" asChild>
                         <Link to="/auth">Sign in to claim</Link>
                       </Button>
                     </>
                   ) : myClaim ? (
-                    <>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        You submitted a claim — status:{" "}
-                        <span className="font-medium text-foreground">{myClaim.status}</span>.
+                    <div className="mt-3 space-y-3">
+                      <p className="text-sm text-muted-foreground">
+                        You submitted a proof-of-ownership claim — status:{" "}
+                        <Badge
+                          variant={
+                            myClaim.status === "approved"
+                              ? "found"
+                              : myClaim.status === "rejected"
+                                ? "destructive"
+                                : "muted"
+                          }
+                          className="ml-1"
+                        >
+                          {myClaim.status}
+                        </Badge>
                       </p>
+
+                      {myClaim.decision_reason && (
+                        <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs">
+                          <span className="font-semibold text-foreground">Note from poster: </span>
+                          <span className="text-muted-foreground">{myClaim.decision_reason}</span>
+                        </div>
+                      )}
+
                       {item.item_type === "found" && item.contact_info ? (
                         <Button
-                          className="mt-4 gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white"
+                          className="gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white"
                           asChild
                         >
                           <a
@@ -407,46 +519,37 @@ function ItemDetail() {
                           </a>
                         </Button>
                       ) : (
-                        <Button className="mt-4" variant="outline" asChild>
+                        <Button variant="outline" asChild>
                           <Link to="/claims/$claimId" params={{ claimId: myClaim.id }}>
                             Open message thread
                           </Link>
                         </Button>
                       )}
-                    </>
+                    </div>
                   ) : (
-                    <>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Describe something only the owner would know — a mark, contents, or where
-                        exactly you lost it.
+                    <div className="mt-3 space-y-3">
+                      <p className="text-sm text-muted-foreground">
+                        Submit structured identifying details (brand, unique marks, contents, or
+                        serial fragment) so the poster can safely verify you as the owner.
                       </p>
-                      <Textarea
-                        className="mt-3"
-                        rows={4}
-                        placeholder="The wallet has a torn corner and a library card with my name…"
-                        value={claimText}
-                        onChange={(e) => setClaimText(e.target.value)}
+                      <ClaimSubmissionDialog
+                        itemId={item.id}
+                        itemTitle={item.title}
+                        onSuccess={() => {
+                          void qc.invalidateQueries({ queryKey: ["claims", id] });
+                          void qc.invalidateQueries({ queryKey: ["dashboard-claims"] });
+                          void qc.invalidateQueries({ queryKey: ["my-claims"] });
+                          void qc.invalidateQueries({ queryKey: ["item", id] });
+                        }}
                       />
-                      <Button
-                        className="mt-3"
-                        disabled={claimText.trim().length < 10 || submitClaim.isPending}
-                        onClick={() => submitClaim.mutate()}
-                      >
-                        {submitClaim.isPending && <Loader2 className="size-4 animate-spin" />}
-                        Submit claim
-                      </Button>
-                    </>
+                    </div>
                   )}
                 </div>
               )}
 
               {/* Smart Potential Matches Section */}
               <div className="mt-8 pt-4">
-                <SmartMatchesWidget
-                  itemId={item.id}
-                  itemType={item.item_type}
-                  title={item.title}
-                />
+                <SmartMatchesWidget itemId={item.id} itemType={item.item_type} title={item.title} />
               </div>
             </div>
           </div>

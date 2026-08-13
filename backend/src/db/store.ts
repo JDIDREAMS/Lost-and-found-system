@@ -35,12 +35,40 @@ export interface ItemRecord {
   updated_at: string;
 }
 
+export interface ProofDetails {
+  brand?: string | null;
+  unique_marks?: string | null;
+  contents_description?: string | null;
+  serial_fragment?: string | null;
+}
+
+export interface MeetupProposal {
+  location: string;
+  scheduled_time: string;
+  notes?: string | null;
+  proposed_by: string;
+  status: "proposed" | "accepted" | "declined" | "completed";
+  updated_at: string;
+}
+
+export interface HandoverStatus {
+  poster_confirmed: boolean;
+  poster_confirmed_at?: string | null;
+  claimant_confirmed: boolean;
+  claimant_confirmed_at?: string | null;
+  completed_at?: string | null;
+}
+
 export interface ClaimRecord {
   id: string;
   item_id: string;
   claimant_id: string;
   message: string;
+  proof_details?: ProofDetails | null | undefined;
   status: "pending" | "approved" | "rejected";
+  decision_reason?: string | null | undefined;
+  meetup?: MeetupProposal | null | undefined;
+  handover?: HandoverStatus | null | undefined;
   created_at: string;
 }
 
@@ -62,12 +90,52 @@ export interface NotificationRecord {
   created_at: string;
 }
 
+export interface ReportRecord {
+  id: string;
+  target_type: "item" | "claim" | "message";
+  target_id: string;
+  reporter_id: string;
+  reason: "fraud" | "fake_claim" | "harassment" | "inappropriate" | "spam" | "other";
+  description?: string | null | undefined;
+  status: "open" | "investigating" | "resolved" | "dismissed";
+  action_taken?: "none" | "item_removed" | "warning_issued" | "user_suspended" | undefined;
+  admin_notes?: string | null | undefined;
+  created_at: string;
+  resolved_at?: string | null | undefined;
+  resolved_by?: string | null | undefined;
+}
+
+export interface AuditLogRecord {
+  id: string;
+  admin_id: string;
+  admin_name: string;
+  action: string;
+  target_type: string;
+  target_id: string;
+  details?: string | null | undefined;
+  created_at: string;
+}
+
+export interface FeedbackRecord {
+  id: string;
+  claim_id: string;
+  from_user_id: string;
+  target_user_id: string;
+  rating: "positive" | "neutral" | "negative";
+  tags?: string[] | undefined;
+  comment?: string | null | undefined;
+  created_at: string;
+}
+
 interface DatabaseSchema {
   users: UserRecord[];
   items: ItemRecord[];
   claims: ClaimRecord[];
   messages: MessageRecord[];
   notifications: NotificationRecord[];
+  reports: ReportRecord[];
+  audit_logs: AuditLogRecord[];
+  feedbacks: FeedbackRecord[];
 }
 
 const DATA_DIR = path.join(__dirname, "../../data");
@@ -169,6 +237,9 @@ class Store {
     claims: [],
     messages: [],
     notifications: [],
+    reports: [],
+    audit_logs: [],
+    feedbacks: [],
   };
 
   constructor() {
@@ -189,6 +260,9 @@ class Store {
           claims: loaded.claims ?? [],
           messages: loaded.messages ?? [],
           notifications: loaded.notifications ?? [],
+          reports: loaded.reports ?? [],
+          audit_logs: loaded.audit_logs ?? [],
+          feedbacks: loaded.feedbacks ?? [],
         };
       } else {
         this.save();
@@ -347,6 +421,57 @@ class Store {
       }
     }
     if (changed) this.save();
+  }
+
+  // Report operations
+  public getReports(status?: string) {
+    if (status && status !== "all") {
+      return (this.db.reports || []).filter((r) => r.status === status);
+    }
+    return this.db.reports || [];
+  }
+
+  public getReportById(id: string) {
+    return (this.db.reports || []).find((r) => r.id === id);
+  }
+
+  public addReport(report: ReportRecord) {
+    if (!this.db.reports) this.db.reports = [];
+    this.db.reports.unshift(report);
+    this.save();
+    return report;
+  }
+
+  public updateReport(id: string, updates: Partial<ReportRecord>) {
+    const report = this.getReportById(id);
+    if (!report) return null;
+    Object.assign(report, updates);
+    this.save();
+    return report;
+  }
+
+  // Audit Log operations
+  public getAuditLogs() {
+    return this.db.audit_logs || [];
+  }
+
+  public addAuditLog(log: AuditLogRecord) {
+    if (!this.db.audit_logs) this.db.audit_logs = [];
+    this.db.audit_logs.unshift(log);
+    this.save();
+    return log;
+  }
+
+  // Feedback operations
+  public getFeedbacksByUserId(userId: string) {
+    return (this.db.feedbacks || []).filter((f) => f.target_user_id === userId);
+  }
+
+  public addFeedback(feedback: FeedbackRecord) {
+    if (!this.db.feedbacks) this.db.feedbacks = [];
+    this.db.feedbacks.unshift(feedback);
+    this.save();
+    return feedback;
   }
 }
 

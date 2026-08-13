@@ -6,7 +6,8 @@ describe("SmartMatcherService Matching Logic", () => {
   const baseLostItem: ItemRecord = {
     id: "item-1",
     title: "Black Leather Fossil Wallet with Student ID",
-    description: "Lost my black leather wallet in the main library 2nd floor study area. Contains student card.",
+    description:
+      "Lost my black leather wallet in the main library 2nd floor study area. Contains student card.",
     category: "Wallets",
     item_type: "lost",
     location: "Main Library 2nd Floor",

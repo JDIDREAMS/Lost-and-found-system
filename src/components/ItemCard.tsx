@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { ItemImage } from "@/components/ItemImage";
 import { formatDate, type ItemRow } from "@/lib/lostfound";
+import { TrustBadge } from "@/components/TrustBadge";
 import { MapPin, CalendarDays } from "lucide-react";
 
 export function ItemCard({ item }: { item: ItemRow }) {
@@ -37,13 +38,16 @@ export function ItemCard({ item }: { item: ItemRow }) {
         <span className="rule-label text-muted-foreground">{item.category}</span>
         <h3 className="text-lg leading-snug font-bold">{item.title}</h3>
         <p className="line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
-        <div className="mt-auto flex flex-wrap gap-x-4 gap-y-1 border-t border-foreground/10 pt-3 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
-            <MapPin className="size-3.5" /> {item.location || "Unspecified"}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <CalendarDays className="size-3.5" /> {formatDate(item.date_occurred)}
-          </span>
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-foreground/10 pt-3 text-xs text-muted-foreground">
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
+            <span className="inline-flex items-center gap-1">
+              <MapPin className="size-3.5" /> {item.location || "Unspecified"}
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <CalendarDays className="size-3.5" /> {formatDate(item.date_occurred)}
+            </span>
+          </div>
+          {item.posted_by && <TrustBadge userId={item.posted_by} compact />}
         </div>
       </div>
     </Link>

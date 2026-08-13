@@ -14,11 +14,7 @@ interface SmartMatchesWidgetProps {
   title: string;
 }
 
-export function SmartMatchesWidget({
-  itemId,
-  itemType,
-  title,
-}: SmartMatchesWidgetProps) {
+export function SmartMatchesWidget({ itemId, itemType, title }: SmartMatchesWidgetProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["smart-matches", itemId],
     queryFn: async () => {
@@ -75,7 +71,8 @@ export function SmartMatchesWidget({
               No strong counterpart matches yet
             </p>
             <p className="mt-1 text-[11px] text-muted-foreground">
-              We'll continuously scan incoming {counterpartLabel.toLowerCase()} and alert you automatically when a match appears.
+              We'll continuously scan incoming {counterpartLabel.toLowerCase()} and alert you
+              automatically when a match appears.
             </p>
           </div>
         ) : (

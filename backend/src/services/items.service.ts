@@ -8,37 +8,41 @@ export class ItemsService {
     item_type?: "lost" | "found";
     status?: string;
   }): Promise<ItemRecord[]> {
+    const combinedMap = new Map<string, ItemRecord>();
+
+    // 1. Load from Supabase
     try {
-      let query = supabaseAdmin.from("items").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabaseAdmin
+        .from("items")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      if (filters?.item_type && filters.item_type !== ("any" as unknown)) {
-        query = query.eq("item_type", filters.item_type);
-      }
-      if (filters?.category && filters.category !== "any") {
-        query = query.eq("category", filters.category);
-      }
-      if (filters?.status && filters.status !== "any") {
-        query = query.eq("status", filters.status);
-      }
-
-      const { data, error } = await query;
       if (!error && data) {
-        if (filters?.keyword) {
-          const kw = filters.keyword.toLowerCase();
-          return data.filter(
-            (i) =>
-              i.title.toLowerCase().includes(kw) ||
-              i.description.toLowerCase().includes(kw) ||
-              i.location.toLowerCase().includes(kw),
-          );
+        for (const item of data as ItemRecord[]) {
+          combinedMap.set(item.id, item);
         }
-        return data as ItemRecord[];
       }
     } catch {
-      // fallback to store
+      // ignore
     }
 
-    let items = store.getItems();
+    // 2. Load from in-memory / JSON store (ensuring locally posted items are always present)
+    for (const item of store.getItems()) {
+      if (!combinedMap.has(item.id)) {
+        combinedMap.set(item.id, item);
+      }
+    }
+
+    let items = Array.from(combinedMap.values());
+
+    // Sort by created_at descending
+    items.sort((a, b) => {
+      const dateA = new Date(a.created_at || a.date_occurred).getTime();
+      const dateB = new Date(b.created_at || b.date_occurred).getTime();
+      return dateB - dateA;
+    });
+
+    // Apply filters
     if (filters?.item_type && filters.item_type !== ("any" as unknown)) {
       items = items.filter((i) => i.item_type === filters.item_type);
     }
@@ -65,7 +69,7 @@ export class ItemsService {
       const { data, error } = await supabaseAdmin.from("items").select("*").eq("id", id).single();
       if (!error && data) return data as ItemRecord;
     } catch {
-      // fallback
+      // ignore
     }
     return store.getItemById(id) || null;
   }
@@ -74,11 +78,23 @@ export class ItemsService {
     item: Omit<ItemRecord, "id" | "created_at" | "updated_at">,
     userToken?: string,
   ): Promise<ItemRecord> {
-    const client = userToken ? createScopedClient(userToken) : supabaseAdmin;
+    const newRecord: ItemRecord = {
+      id: crypto.randomUUID(),
+      ...item,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Always persist to local store first
+    store.addItem(newRecord);
+
+    // Attempt to persist to Supabase
     try {
+      const client = userToken ? createScopedClient(userToken) : supabaseAdmin;
       const { data, error } = await client
         .from("items")
         .insert({
+          id: newRecord.id,
           title: item.title,
           description: item.description,
           category: item.category,
@@ -95,21 +111,12 @@ export class ItemsService {
         .single();
 
       if (!error && data) {
-        const record = data as ItemRecord;
-        store.addItem(record);
-        return record;
+        return data as ItemRecord;
       }
     } catch {
-      // fallback
+      // ignore
     }
 
-    const newRecord: ItemRecord = {
-      id: crypto.randomUUID(),
-      ...item,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    store.addItem(newRecord);
     return newRecord;
   }
 
@@ -118,8 +125,12 @@ export class ItemsService {
     updates: Partial<ItemRecord>,
     userToken?: string,
   ): Promise<ItemRecord | null> {
-    const client = userToken ? createScopedClient(userToken) : supabaseAdmin;
+    // Update local store
+    const updatedLocal = store.updateItem(id, updates);
+
+    // Attempt to update Supabase
     try {
+      const client = userToken ? createScopedClient(userToken) : supabaseAdmin;
       const { data, error } = await client
         .from("items")
         .update({ ...updates, updated_at: new Date().toISOString() })
@@ -128,28 +139,24 @@ export class ItemsService {
         .single();
 
       if (!error && data) {
-        const record = data as ItemRecord;
-        store.updateItem(id, updates);
-        return record;
+        return data as ItemRecord;
       }
     } catch {
-      // fallback
+      // ignore
     }
 
-    return store.updateItem(id, updates);
+    return updatedLocal;
   }
 
   static async delete(id: string, userToken?: string): Promise<boolean> {
-    const client = userToken ? createScopedClient(userToken) : supabaseAdmin;
+    store.deleteItem(id);
+
     try {
-      const { error } = await client.from("items").delete().eq("id", id);
-      if (!error) {
-        store.deleteItem(id);
-        return true;
-      }
+      const client = userToken ? createScopedClient(userToken) : supabaseAdmin;
+      await client.from("items").delete().eq("id", id);
     } catch {
-      // fallback
+      // ignore
     }
-    return store.deleteItem(id);
+    return true;
   }
 }

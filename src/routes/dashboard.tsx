@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles, MapPin, Calendar, ArrowRight, Tag } from "lucide-react";
+import { Sparkles, MapPin, Calendar, ArrowRight, Tag, Inbox, ShieldCheck } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { api, UserSmartMatches } from "@/lib/api";
+import { api, UserSmartMatches, ProofDetails } from "@/lib/api";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
 import { ItemCard } from "@/components/ItemCard";
 import { ItemImage } from "@/components/ItemImage";
@@ -19,8 +20,7 @@ export const Route = createFileRoute("/dashboard")({
       { title: "Your dashboard | FoundIt" },
       {
         name: "description",
-        content:
-          "Track the items you posted, the claims you made and the requests waiting on you.",
+        content: "Track the items you posted, the claims you made and the requests waiting on you.",
       },
       { property: "og:title", content: "Your dashboard | FoundIt" },
       {
@@ -36,9 +36,12 @@ interface ClaimWithItem {
   id: string;
   status: ClaimStatus;
   message: string;
+  proof_details?: ProofDetails | null;
+  decision_reason?: string | null;
   created_at: string;
   item_id: string;
-  items: { title: string; item_type: string } | null;
+  claimant_id: string;
+  items: { title: string; item_type: string; posted_by?: string | null } | null;
 }
 
 function Dashboard() {
@@ -49,36 +52,85 @@ function Dashboard() {
     if (!loading && !user) void navigate({ to: "/auth" });
   }, [loading, user, navigate]);
 
+  // 1. My Listings (Lost and Found items posted by current user)
   const { data: myItems, isLoading: itemsLoading } = useQuery({
     queryKey: ["my-items", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { items } = await api.getItems();
-      return items.filter((i) => i.posted_by === user!.id) as ItemRow[];
+      try {
+        const { items } = await api.getItems();
+        return items.filter(
+          (i) =>
+            i.posted_by === user?.id ||
+            (user?.email && i.posted_by === user.email) ||
+            (user?.user_metadata?.display_name &&
+              i.poster_name === user.user_metadata.display_name),
+        ) as ItemRow[];
+      } catch (err) {
+        console.warn("Express API getItems failed, falling back to Supabase...", err);
+        const { data, error } = await supabase
+          .from("items")
+          .select("*")
+          .eq("posted_by", user!.id)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        return (data ?? []) as ItemRow[];
+      }
     },
   });
 
-  const { data: myClaims } = useQuery({
-    queryKey: ["my-claims", user?.id],
+  // 2. All claims and items for computing user's claims and received claims
+  const { data: allClaimsData, isLoading: claimsLoading } = useQuery({
+    queryKey: ["dashboard-claims", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { claims } = await api.getClaims();
-      const { items } = await api.getItems();
-      const itemMap = Object.fromEntries(items.map((i) => [i.id, i]));
-      return claims
-        .filter((c) => c.claimant_id === user!.id)
-        .map((c) => {
+      try {
+        const { claims } = await api.getClaims();
+        const { items } = await api.getItems();
+        const itemMap = Object.fromEntries(items.map((i) => [i.id, i]));
+        const enriched = claims.map((c) => {
           const matchedItem = itemMap[c.item_id];
           return {
             ...c,
             items: matchedItem
-              ? { title: matchedItem.title, item_type: matchedItem.item_type }
+              ? {
+                  title: matchedItem.title,
+                  item_type: matchedItem.item_type,
+                  posted_by: matchedItem.posted_by,
+                }
               : null,
           };
         }) as ClaimWithItem[];
+        return { claims: enriched, items };
+      } catch (err) {
+        console.warn("Express API getClaims failed, falling back to Supabase...", err);
+        const { data: claimsData, error: claimsErr } = await supabase
+          .from("claims")
+          .select(
+            "id, status, message, created_at, item_id, claimant_id, items(title, item_type, posted_by)",
+          )
+          .order("created_at", { ascending: false });
+        if (claimsErr) throw claimsErr;
+        return {
+          claims: (claimsData ?? []) as unknown as ClaimWithItem[],
+          items: [] as ItemRow[],
+        };
+      }
     },
   });
 
+  const myClaims = (allClaimsData?.claims ?? []).filter(
+    (c) => c.claimant_id === user?.id || (user?.email && c.claimant_id === user.email),
+  );
+
+  const receivedClaims = (allClaimsData?.claims ?? []).filter((c) => {
+    const isMyItem =
+      c.items?.posted_by === user?.id || (user?.email && c.items?.posted_by === user.email);
+    const isNotMyClaim = c.claimant_id !== user?.id && c.claimant_id !== user?.email;
+    return isMyItem && isNotMyClaim;
+  });
+
+  // 3. Smart Matches
   const { data: smartMatches, isLoading: matchesLoading } = useQuery({
     queryKey: ["my-smart-matches", user?.id],
     enabled: !!user,
@@ -112,7 +164,7 @@ function Dashboard() {
         </div>
 
         <Tabs defaultValue="items" className="mt-8">
-          <TabsList className="flex flex-wrap">
+          <TabsList className="flex flex-wrap gap-1">
             <TabsTrigger value="items">My listings ({myItems?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="matches" className="relative gap-1.5">
               <Sparkles className="size-3.5 text-primary" />
@@ -123,9 +175,19 @@ function Dashboard() {
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="claims">My claims ({myClaims?.length ?? 0})</TabsTrigger>
+            <TabsTrigger value="claims">My claims ({myClaims.length})</TabsTrigger>
+            <TabsTrigger value="received" className="relative gap-1.5">
+              <Inbox className="size-3.5" />
+              Received Claims
+              {receivedClaims.length > 0 && (
+                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                  {receivedClaims.length}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
 
+          {/* TAB 1: My Listings (Lost and Found posts) */}
           <TabsContent value="items" className="pt-6">
             {itemsLoading ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -142,11 +204,12 @@ function Dashboard() {
             ) : (
               <EmptyState
                 title="No listings yet"
-                body="Post a lost or found item and it will show up here."
+                body="Post a lost or found item and it will show up here and on the campus browse board."
               />
             )}
           </TabsContent>
 
+          {/* TAB 2: Smart Matches */}
           <TabsContent value="matches" className="pt-6">
             {matchesLoading ? (
               <div className="space-y-6">
@@ -164,9 +227,7 @@ function Dashboard() {
                       <div>
                         <div className="flex items-center gap-2">
                           <Badge
-                            variant={
-                              group.sourceItem.item_type === "lost" ? "lost" : "found"
-                            }
+                            variant={group.sourceItem.item_type === "lost" ? "lost" : "found"}
                             className="uppercase text-[10px]"
                           >
                             Your {group.sourceItem.item_type} post
@@ -293,8 +354,14 @@ function Dashboard() {
             )}
           </TabsContent>
 
+          {/* TAB 3: My Claims (Claims made BY current user) */}
           <TabsContent value="claims" className="pt-6">
-            {myClaims?.length ? (
+            {claimsLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-24 rounded-2xl" />
+                <Skeleton className="h-24 rounded-2xl" />
+              </div>
+            ) : myClaims.length ? (
               <ul className="space-y-3">
                 {myClaims.map((c) => (
                   <li
@@ -302,10 +369,24 @@ function Dashboard() {
                     className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-5 shadow-soft"
                   >
                     <div>
-                      <p className="font-medium">{c.items?.title ?? "Item"}</p>
-                      <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">{c.message}</p>
+                      <div className="flex items-center gap-2">
+                        {c.items?.item_type && (
+                          <Badge
+                            variant={c.items.item_type === "lost" ? "lost" : "found"}
+                            className="text-[10px] uppercase"
+                          >
+                            {c.items.item_type}
+                          </Badge>
+                        )}
+                        <p className="font-semibold text-foreground">
+                          {c.items?.title ?? "Claimed Item"}
+                        </p>
+                      </div>
+                      <p className="mt-1.5 line-clamp-1 text-sm text-muted-foreground">
+                        {c.message}
+                      </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {formatDateTime(c.created_at)}
+                        Submitted on {formatDateTime(c.created_at)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -322,7 +403,7 @@ function Dashboard() {
                       </Badge>
                       <Button size="sm" variant="outline" asChild>
                         <Link to="/claims/$claimId" params={{ claimId: c.id }}>
-                          Open
+                          Open Thread
                         </Link>
                       </Button>
                     </div>
@@ -332,7 +413,64 @@ function Dashboard() {
             ) : (
               <EmptyState
                 title="No claims yet"
-                body="When you claim an item, you can track its progress here."
+                body="When you claim an item you misplaced, you can track its proof verification and handover progress here."
+              />
+            )}
+          </TabsContent>
+
+          {/* TAB 4: Received Claims (Claims on current user's listings) */}
+          <TabsContent value="received" className="pt-6">
+            {claimsLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-24 rounded-2xl" />
+                <Skeleton className="h-24 rounded-2xl" />
+              </div>
+            ) : receivedClaims.length ? (
+              <ul className="space-y-3">
+                {receivedClaims.map((c) => (
+                  <li
+                    key={c.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-card p-5 shadow-soft"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="size-4 text-primary" />
+                        <p className="font-semibold text-foreground">
+                          Claim on: {c.items?.title ?? "Your Listing"}
+                        </p>
+                      </div>
+                      <p className="mt-1.5 line-clamp-1 text-sm text-muted-foreground">
+                        Proof: {c.message}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Received on {formatDateTime(c.created_at)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant={
+                          c.status === "approved"
+                            ? "found"
+                            : c.status === "rejected"
+                              ? "destructive"
+                              : "muted"
+                        }
+                      >
+                        {c.status}
+                      </Badge>
+                      <Button size="sm" asChild>
+                        <Link to="/claims/$claimId" params={{ claimId: c.id }}>
+                          Review Proof &amp; Chat
+                        </Link>
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState
+                title="No received claims yet"
+                body="When other users claim items you found, their proof submissions will appear here for your review."
               />
             )}
           </TabsContent>

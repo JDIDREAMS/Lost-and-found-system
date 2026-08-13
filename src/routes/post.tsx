@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Upload, X, Images } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +43,7 @@ export const Route = createFileRoute("/post")({
 function PostItem() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [type, setType] = useState<ItemType>("lost");
   const [title, setTitle] = useState("");
@@ -101,6 +103,9 @@ function PostItem() {
           image_url: imagePayload,
         });
         toast.success("Your report is live.");
+        void qc.invalidateQueries({ queryKey: ["items"] });
+        void qc.invalidateQueries({ queryKey: ["my-items"] });
+        void qc.invalidateQueries({ queryKey: ["my-smart-matches"] });
         void navigate({ to: "/items/$id", params: { id: newItem.id } });
         return;
       } catch (backendErr) {
@@ -146,6 +151,9 @@ function PostItem() {
 
       if (error) throw error;
       toast.success("Your report is live.");
+      void qc.invalidateQueries({ queryKey: ["items"] });
+      void qc.invalidateQueries({ queryKey: ["my-items"] });
+      void qc.invalidateQueries({ queryKey: ["my-smart-matches"] });
       void navigate({ to: "/items/$id", params: { id: data.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not post the item.");

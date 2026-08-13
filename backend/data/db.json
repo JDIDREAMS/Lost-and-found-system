@@ -115,9 +115,68 @@
       "createdAt": "2026-08-13T19:30:43.830Z",
       "resetToken": "4cd727f943609ea53541cd5ad7e43626b42791e65f9c14fbce082ff04c194d98",
       "resetTokenExpires": 1786655364811
+    },
+    {
+      "id": "student-user-trust",
+      "email": "alex@university.edu",
+      "passwordHash": "hash",
+      "displayName": "Alex T.",
+      "role": "user",
+      "studentId": "STU-8877",
+      "isStudentVerified": true,
+      "createdAt": "2026-08-13T23:32:31.541Z",
+      "updatedAt": "2026-08-13T23:32:31.541Z"
     }
   ],
   "items": [
+    {
+      "id": "5dd7da3c-863e-413a-b0a7-c7da41a31272",
+      "title": "mouse",
+      "description": "black hp mouse",
+      "category": "Electronics",
+      "item_type": "found",
+      "location": "college of science",
+      "date_occurred": "2026-08-13",
+      "image_url": "/uploads/e1f1ad82-3a3d-49d6-a6c1-f045b3b3d64f.jpg",
+      "status": "open",
+      "contact_info": "233202871710",
+      "posted_by": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "poster_name": "Benedict Okai",
+      "created_at": "2026-08-13T23:15:51.091Z",
+      "updated_at": "2026-08-13T23:15:51.091Z"
+    },
+    {
+      "id": "d6d3415d-fbc8-488b-afc2-c741f1909d38",
+      "title": ",m.cnmncvmd",
+      "description": "kcldm;klsdnvjkn",
+      "category": "Electronics",
+      "item_type": "lost",
+      "location": ",mm c,mv,",
+      "date_occurred": "2026-08-13",
+      "image_url": "/uploads/0552dbfe-a8e2-43f4-911b-d1e79298ef97.jpg",
+      "status": "open",
+      "contact_info": null,
+      "posted_by": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "poster_name": "Benedict Okai",
+      "created_at": "2026-08-13T22:58:37.750Z",
+      "updated_at": "2026-08-13T22:58:37.750Z"
+    },
+    {
+      "id": "b018cd20-c998-4ebe-bab8-46c827bd1e7a",
+      "title": "laptop",
+      "description": "apple macbook air m3",
+      "category": "Electronics",
+      "item_type": "found",
+      "location": "college of science",
+      "date_occurred": "2026-08-13",
+      "image_url": "/uploads/121483f5-2b55-46d6-9aac-73a273a70e34.jpg",
+      "status": "open",
+      "contact_info": "233202871710",
+      "posted_by": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "poster_name": "Benedict Okai",
+      "created_at": "2026-08-13T22:57:35.833Z",
+      "updated_at": "2026-08-13T22:57:35.833Z"
+    },
     {
       "id": "26204a33-ba99-409e-94e5-2998945e25c7",
       "title": "cell",
@@ -265,6 +324,94 @@
   ],
   "claims": [
     {
+      "id": "claim-handover-test",
+      "item_id": "item-123",
+      "claimant_id": "user-claimant",
+      "message": "This is my lost wallet with student ID.",
+      "status": "approved",
+      "created_at": "2026-08-13T23:20:18.740Z",
+      "handover": {
+        "poster_confirmed": true,
+        "claimant_confirmed": true,
+        "poster_confirmed_at": "2026-08-13T23:20:18.750Z",
+        "claimant_confirmed_at": "2026-08-13T23:20:18.753Z",
+        "completed_at": "2026-08-13T23:20:18.753Z"
+      }
+    },
+    {
+      "id": "963b0538-5147-43d5-b40f-818ea30e7f56",
+      "item_id": "2e19f940-2590-4cdb-aa23-7fb91526b4c9",
+      "claimant_id": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "message": "kfk;jkfkmvf",
+      "proof_details": {
+        "brand": "nj;hfje/f",
+        "unique_marks": "fe;uhpuewf",
+        "contents_description": "jvn;iov",
+        "serial_fragment": "j;fjewhufew"
+      },
+      "status": "pending",
+      "created_at": "2026-08-13T23:16:52.456Z"
+    },
+    {
+      "id": "claim-handover-test",
+      "item_id": "item-123",
+      "claimant_id": "user-claimant",
+      "message": "This is my lost wallet with student ID.",
+      "status": "approved",
+      "created_at": "2026-08-13T23:11:16.305Z",
+      "handover": {
+        "poster_confirmed": true,
+        "claimant_confirmed": true,
+        "poster_confirmed_at": "2026-08-13T23:11:16.315Z",
+        "claimant_confirmed_at": "2026-08-13T23:11:16.317Z",
+        "completed_at": "2026-08-13T23:11:16.317Z"
+      }
+    },
+    {
+      "id": "claim-handover-test",
+      "item_id": "item-123",
+      "claimant_id": "user-claimant",
+      "message": "This is my lost wallet with student ID.",
+      "status": "approved",
+      "created_at": "2026-08-13T23:06:47.346Z",
+      "handover": {
+        "poster_confirmed": true,
+        "claimant_confirmed": true,
+        "poster_confirmed_at": "2026-08-13T23:06:47.355Z",
+        "claimant_confirmed_at": "2026-08-13T23:06:47.358Z",
+        "completed_at": "2026-08-13T23:06:47.358Z"
+      }
+    },
+    {
+      "id": "claim-handover-test",
+      "item_id": "item-123",
+      "claimant_id": "user-claimant",
+      "message": "This is my lost wallet with student ID.",
+      "status": "approved",
+      "created_at": "2026-08-13T23:04:38.865Z",
+      "handover": {
+        "poster_confirmed": true,
+        "claimant_confirmed": true,
+        "poster_confirmed_at": "2026-08-13T23:04:38.875Z",
+        "claimant_confirmed_at": "2026-08-13T23:04:38.879Z",
+        "completed_at": "2026-08-13T23:04:38.879Z"
+      }
+    },
+    {
+      "id": "9effa7dd-3322-4b08-b9d8-6b3cc4b6592b",
+      "item_id": "2e19f940-2590-4cdb-aa23-7fb91526b4c9",
+      "claimant_id": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "message": "jnvkjkjvkkvl",
+      "proof_details": {
+        "brand": "apple",
+        "unique_marks": null,
+        "contents_description": null,
+        "serial_fragment": null
+      },
+      "status": "pending",
+      "created_at": "2026-08-13T22:55:27.481Z"
+    },
+    {
       "id": "9951ce34-9737-474e-93a8-19db01d9fa92",
       "item_id": "ba64a6c4-b41c-411b-8d79-f8805a26153f",
       "claimant_id": "a0d774d0-dae1-48e1-8820-39365f37408a",
@@ -292,6 +439,22 @@
   "messages": [],
   "notifications": [
     {
+      "id": "13d6f743-fa29-48f3-bfc7-354b39144058",
+      "user_id": "student-user-trust",
+      "text": "⭐ You received a positive trust rating for a successful handover!",
+      "link": "/dashboard",
+      "is_read": false,
+      "created_at": "2026-08-13T23:32:32.246Z"
+    },
+    {
+      "id": "b717ec13-c501-44fa-af39-b26895a99da5",
+      "user_id": "user-reporter-99",
+      "text": "🛡️ Moderation Update: Your report on message was reviewed and resolved.",
+      "link": "/dashboard",
+      "is_read": false,
+      "created_at": "2026-08-13T23:32:32.095Z"
+    },
+    {
       "id": "0faa94d2-0d86-4640-b4cc-fac6b39461b3",
       "user_id": "e8419da8-d500-49bc-af33-d9e5607cd224",
       "text": "Benedict Okai submitted a claim on \"hfjfjjfjf\"",
@@ -314,6 +477,59 @@
       "link": "/claims/e1e518b0-b582-4dd4-944f-8b1b38c14b27",
       "is_read": false,
       "created_at": "2026-08-11T15:42:45.103Z"
+    }
+  ],
+  "reports": [
+    {
+      "id": "b89bbe37-7b86-4ec9-9527-8f918867e8c4",
+      "target_type": "message",
+      "target_id": "msg-harass-1",
+      "reporter_id": "user-reporter-99",
+      "reason": "harassment",
+      "description": "Abusive language in meetup negotiation.",
+      "status": "resolved",
+      "created_at": "2026-08-13T23:32:31.559Z",
+      "action_taken": "warning_issued",
+      "admin_notes": "Issued official warning for community policy violation.",
+      "resolved_at": "2026-08-13T23:32:31.561Z",
+      "resolved_by": "admin-1"
+    },
+    {
+      "id": "b0f8caf6-b4ce-4b09-a6b0-00c803898f51",
+      "target_type": "claim",
+      "target_id": "claim-fraud-99",
+      "reporter_id": "user-reporter-99",
+      "reason": "fraud",
+      "description": "Attempted to claim someone else's AirPods.",
+      "status": "open",
+      "created_at": "2026-08-13T23:32:31.552Z"
+    }
+  ],
+  "audit_logs": [
+    {
+      "id": "6773d31c-ee95-40fe-952e-c60f9478a354",
+      "admin_id": "admin-1",
+      "admin_name": "Campus Security Admin",
+      "action": "Report RESOLVED (warning_issued)",
+      "target_type": "message",
+      "target_id": "msg-harass-1",
+      "details": "Issued official warning for community policy violation.",
+      "created_at": "2026-08-13T23:32:31.574Z"
+    }
+  ],
+  "feedbacks": [
+    {
+      "id": "0826204c-ee4d-43e4-b1e8-1662f6d149aa",
+      "claim_id": "claim-test-feedback",
+      "from_user_id": "counterpart-user",
+      "target_user_id": "student-user-trust",
+      "rating": "positive",
+      "tags": [
+        "Safe Public Location",
+        "Fast Communication"
+      ],
+      "comment": "Super smooth return!",
+      "created_at": "2026-08-13T23:32:32.105Z"
     }
   ]
 }

@@ -29,12 +29,40 @@ export interface Item {
   updated_at: string;
 }
 
+export interface ProofDetails {
+  brand?: string | null;
+  unique_marks?: string | null;
+  contents_description?: string | null;
+  serial_fragment?: string | null;
+}
+
+export interface MeetupProposal {
+  location: string;
+  scheduled_time: string;
+  notes?: string | null;
+  proposed_by: string;
+  status: "proposed" | "accepted" | "declined" | "completed";
+  updated_at: string;
+}
+
+export interface HandoverStatus {
+  poster_confirmed: boolean;
+  poster_confirmed_at?: string | null;
+  claimant_confirmed: boolean;
+  claimant_confirmed_at?: string | null;
+  completed_at?: string | null;
+}
+
 export interface Claim {
   id: string;
   item_id: string;
   claimant_id: string;
   message: string;
+  proof_details?: ProofDetails | null | undefined;
   status: "pending" | "approved" | "rejected";
+  decision_reason?: string | null | undefined;
+  meetup?: MeetupProposal | null | undefined;
+  handover?: HandoverStatus | null | undefined;
   created_at: string;
 }
 
@@ -45,6 +73,56 @@ export interface Message {
   text: string;
   is_read: boolean;
   created_at: string;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  text: string;
+  link: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface Report {
+  id: string;
+  target_type: "item" | "claim" | "message";
+  target_id: string;
+  reporter_id: string;
+  reporter_name?: string;
+  target_preview?: string;
+  reason: "fraud" | "fake_claim" | "harassment" | "inappropriate" | "spam" | "other";
+  description?: string | null;
+  status: "open" | "investigating" | "resolved" | "dismissed";
+  action_taken?: "none" | "item_removed" | "warning_issued" | "user_suspended";
+  admin_notes?: string | null;
+  created_at: string;
+  resolved_at?: string | null;
+  resolved_by?: string | null;
+}
+
+export interface AuditLog {
+  id: string;
+  admin_id: string;
+  admin_name: string;
+  action: string;
+  target_type: string;
+  target_id: string;
+  details?: string | null;
+  created_at: string;
+}
+
+export interface UserReputation {
+  userId: string;
+  isStudentVerified: boolean;
+  successfulReturnsCount: number;
+  positiveFeedbackCount: number;
+  trustScore: number;
+  badges: Array<{
+    id: "verified_student" | "frequent_helper" | "top_finder" | "trusted_member";
+    label: string;
+    description: string;
+  }>;
 }
 
 export interface MatchReason {
@@ -189,25 +267,61 @@ export const api = {
   getItemMatches: (id: string, minScore = 40) =>
     request<{ matches: ScoredMatch[] }>(`/items/${id}/matches?minScore=${minScore}`),
 
-  getMySmartMatches: () =>
-    request<{ results: UserSmartMatches[] }>("/items/smart-matches/mine"),
+  getMySmartMatches: () => request<{ results: UserSmartMatches[] }>("/items/smart-matches/mine"),
 
   // Claims
-  submitClaim: (itemId: string, message: string) =>
-    request<{ claim: Claim }>(`/items/${itemId}/claims`, {
+  submitClaim: (
+    itemId: string,
+    payload:
+      | {
+          message: string;
+          brand?: string | null;
+          unique_marks?: string | null;
+          contents_description?: string | null;
+          serial_fragment?: string | null;
+        }
+      | string,
+  ) => {
+    const body = typeof payload === "string" ? { message: payload } : payload;
+    return request<{ claim: Claim }>(`/items/${itemId}/claims`, {
       method: "POST",
-      body: JSON.stringify({ message }),
-    }),
+      body: JSON.stringify(body),
+    });
+  },
 
   getClaims: (itemId?: string) =>
     request<{ claims: Claim[] }>(`/claims${itemId ? `?itemId=${itemId}` : ""}`),
 
   getClaimById: (id: string) => request<{ claim: Claim; item: Item }>(`/claims/${id}`),
 
-  updateClaimStatus: (claimId: string, status: "approved" | "rejected" | "pending") =>
+  updateClaimStatus: (
+    claimId: string,
+    status: "approved" | "rejected" | "pending",
+    decisionReason?: string | null,
+  ) =>
     request<{ claim: Claim }>(`/claims/${claimId}/status`, {
       method: "PATCH",
+      body: JSON.stringify({ status, decision_reason: decisionReason }),
+    }),
+
+  proposeMeetup: (
+    claimId: string,
+    payload: { location: string; scheduled_time: string; notes?: string | null },
+  ) =>
+    request<{ claim: Claim }>(`/claims/${claimId}/meetup`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  respondMeetup: (claimId: string, status: "accepted" | "declined") =>
+    request<{ claim: Claim }>(`/claims/${claimId}/meetup/status`, {
+      method: "PATCH",
       body: JSON.stringify({ status }),
+    }),
+
+  confirmHandover: (claimId: string) =>
+    request<{ claim: Claim; isFullyCompleted: boolean }>(`/claims/${claimId}/handover/confirm`, {
+      method: "POST",
     }),
 
   // Messages
@@ -242,4 +356,50 @@ export const api = {
     });
     return res.urls;
   },
+
+  // Moderation & Reports
+  createReport: (data: {
+    target_type: "item" | "claim" | "message";
+    target_id: string;
+    reason: "fraud" | "fake_claim" | "harassment" | "inappropriate" | "spam" | "other";
+    description?: string | null;
+  }) =>
+    request<{ report: Report }>("/reports", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  getAdminReports: (status?: string) =>
+    request<{ reports: Report[] }>(`/admin/reports${status ? `?status=${status}` : ""}`),
+
+  resolveReport: (
+    reportId: string,
+    data: {
+      status: "investigating" | "resolved" | "dismissed";
+      action_taken?: "none" | "item_removed" | "warning_issued" | "user_suspended";
+      admin_notes?: string | null;
+    },
+  ) =>
+    request<{ report: Report }>(`/admin/reports/${reportId}/resolve`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  getAuditLogs: () => request<{ logs: AuditLog[] }>("/admin/audit-logs"),
+
+  // Feedback & Reputation
+  postFeedback: (data: {
+    claim_id: string;
+    target_user_id: string;
+    rating: "positive" | "neutral" | "negative";
+    tags?: string[];
+    comment?: string | null;
+  }) =>
+    request<{ feedback: unknown }>("/feedback", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  getUserReputation: (userId: string) =>
+    request<{ reputation: UserReputation }>(`/users/${userId}/reputation`),
 };
