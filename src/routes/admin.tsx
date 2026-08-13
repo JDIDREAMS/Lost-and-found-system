@@ -26,7 +26,8 @@ export const Route = createFileRoute("/admin")({
       { title: "Admin panel | FoundIt" },
       {
         name: "description",
-        content: "Moderate listings, review claim activity and keep the lost and found board clean.",
+        content:
+          "Moderate listings, review claim activity and keep the lost and found board clean.",
       },
       { property: "og:title", content: "Admin panel | FoundIt" },
       { property: "og:description", content: "Moderation tools for the FoundIt board." },

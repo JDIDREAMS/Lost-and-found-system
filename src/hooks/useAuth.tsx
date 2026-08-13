@@ -58,7 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               is_student_verified: apiUser.isStudentVerified,
             },
           });
-          setDisplayName(apiUser.displayName || (apiUser.email ? apiUser.email.split("@")[0]! : "Member"));
+          setDisplayName(
+            apiUser.displayName || (apiUser.email ? apiUser.email.split("@")[0]! : "Member"),
+          );
           setIsAdmin(apiUser.role === "admin");
           setIsStudentVerified(apiUser.isStudentVerified);
           setStudentId(apiUser.studentId ?? null);
@@ -77,7 +79,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data.session?.user) {
         const sbUser = data.session.user;
         setUser(sbUser);
-        setDisplayName((sbUser.user_metadata?.["display_name"] as string) || sbUser.email?.split("@")[0] || "Member");
+        setDisplayName(
+          (sbUser.user_metadata?.["display_name"] as string) ||
+            sbUser.email?.split("@")[0] ||
+            "Member",
+        );
         setIsAdmin(sbUser.email === "admin@foundit.edu");
         setIsStudentVerified(Boolean(sbUser.user_metadata?.["is_student_verified"]));
         setStudentId((sbUser.user_metadata?.["student_id"] as string) ?? null);

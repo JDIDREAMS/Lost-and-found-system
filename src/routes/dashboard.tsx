@@ -70,7 +70,9 @@ function Dashboard() {
           const matchedItem = itemMap[c.item_id];
           return {
             ...c,
-            items: matchedItem ? { title: matchedItem.title, item_type: matchedItem.item_type } : null,
+            items: matchedItem
+              ? { title: matchedItem.title, item_type: matchedItem.item_type }
+              : null,
           };
         }) as ClaimWithItem[];
     },

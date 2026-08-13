@@ -97,7 +97,6 @@
   --sidebar-ring: oklch(0.16 0 0);
 }
 
-
 .dark {
   --background: oklch(0.16 0 0);
   --foreground: oklch(0.962 0.006 85);
@@ -165,4 +164,3 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-

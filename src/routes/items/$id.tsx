@@ -2,21 +2,43 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CalendarDays, MapPin, Mail, Loader2, Trash2, ArrowLeft, MessageCircle } from "lucide-react";
+import {
+  CalendarDays,
+  MapPin,
+  Mail,
+  Loader2,
+  Trash2,
+  ArrowLeft,
+  MessageCircle,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
 import { ItemImage, parseImagePaths } from "@/components/ItemImage";
 
-function ItemGallery({ imagePayload, category, title }: { imagePayload: string | null; category?: string; title: string }) {
+function ItemGallery({
+  imagePayload,
+  category,
+  title,
+}: {
+  imagePayload: string | null;
+  category?: string;
+  title: string;
+}) {
   const images = parseImagePaths(imagePayload);
   const [selectedIdx, setSelectedIdx] = useState(0);
 
   if (images.length <= 1) {
     return (
       <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
-        <ItemImage path={images[0] ?? null} category={category} alt={title} eager className="aspect-[4/3] w-full" />
+        <ItemImage
+          path={images[0] ?? null}
+          category={category}
+          alt={title}
+          eager
+          className="aspect-[4/3] w-full"
+        />
       </div>
     );
   }
@@ -24,7 +46,13 @@ function ItemGallery({ imagePayload, category, title }: { imagePayload: string |
   return (
     <div className="space-y-3">
       <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
-        <ItemImage path={images[selectedIdx] ?? images[0] ?? null} category={category} alt={`${title} image ${selectedIdx + 1}`} eager className="aspect-[4/3] w-full" />
+        <ItemImage
+          path={images[selectedIdx] ?? images[0] ?? null}
+          category={category}
+          alt={`${title} image ${selectedIdx + 1}`}
+          eager
+          className="aspect-[4/3] w-full"
+        />
       </div>
       <div className="flex flex-wrap gap-2">
         {images.map((path, idx) => (
@@ -33,10 +61,17 @@ function ItemGallery({ imagePayload, category, title }: { imagePayload: string |
             type="button"
             onClick={() => setSelectedIdx(idx)}
             className={`relative aspect-square w-16 overflow-hidden rounded-xl border transition ${
-              selectedIdx === idx ? "ring-2 ring-primary border-primary" : "opacity-70 hover:opacity-100"
+              selectedIdx === idx
+                ? "ring-2 ring-primary border-primary"
+                : "opacity-70 hover:opacity-100"
             }`}
           >
-            <ItemImage path={path} category={category} alt={`${title} thumbnail ${idx + 1}`} className="h-full w-full object-cover" />
+            <ItemImage
+              path={path}
+              category={category}
+              alt={`${title} thumbnail ${idx + 1}`}
+              className="h-full w-full object-cover"
+            />
           </button>
         ))}
       </div>
@@ -54,7 +89,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatDate, statusLabel, type ClaimStatus, type ItemRow, type ItemStatus } from "@/lib/lostfound";
+import {
+  formatDate,
+  statusLabel,
+  type ClaimStatus,
+  type ItemRow,
+  type ItemStatus,
+} from "@/lib/lostfound";
 
 export const Route = createFileRoute("/items/$id")({
   head: () => ({
@@ -62,7 +103,8 @@ export const Route = createFileRoute("/items/$id")({
       { title: "Item details | FoundIt" },
       {
         name: "description",
-        content: "See the full report for this lost or found item and submit a claim with proof of ownership.",
+        content:
+          "See the full report for this lost or found item and submit a claim with proof of ownership.",
       },
       { property: "og:title", content: "Item details | FoundIt" },
       {
@@ -217,7 +259,11 @@ function ItemDetail() {
           </div>
         ) : (
           <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
-            <ItemGallery imagePayload={item.image_url} category={item.category} title={item.title} />
+            <ItemGallery
+              imagePayload={item.image_url}
+              category={item.category}
+              title={item.title}
+            />
 
             <div>
               <div className="flex flex-wrap items-center gap-2">

@@ -84,9 +84,7 @@ export function NotificationBell() {
         </div>
         <ScrollArea className="max-h-80">
           {items.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-              Nothing here yet.
-            </p>
+            <p className="px-4 py-8 text-center text-sm text-muted-foreground">Nothing here yet.</p>
           ) : (
             <ul className="divide-y">
               {items.map((n) => (
@@ -95,10 +93,7 @@ export function NotificationBell() {
                     className="block w-full px-4 py-3 text-left hover:bg-surface"
                     onClick={() => {
                       setOpen(false);
-                      void supabase
-                        .from("notifications")
-                        .update({ is_read: true })
-                        .eq("id", n.id);
+                      void supabase.from("notifications").update({ is_read: true }).eq("id", n.id);
                       if (n.link) void navigate({ to: n.link });
                     }}
                   >

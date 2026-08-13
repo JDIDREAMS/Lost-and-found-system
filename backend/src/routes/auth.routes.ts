@@ -44,7 +44,8 @@ router.post("/register", async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const isVerifiedStudent = isSchoolEmail(email) || (studentId && String(studentId).trim().length > 0);
+    const isVerifiedStudent =
+      isSchoolEmail(email) || (studentId && String(studentId).trim().length > 0);
 
     const newUser: UserRecord = {
       id: crypto.randomUUID(),

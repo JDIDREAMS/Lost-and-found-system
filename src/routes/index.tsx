@@ -21,7 +21,8 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "FoundIt — Campus Lost & Found" },
       {
         property: "og:description",
-        content: "Post lost or found items, search the board, and reunite people with what matters.",
+        content:
+          "Post lost or found items, search the board, and reunite people with what matters.",
       },
     ],
   }),
@@ -64,7 +65,10 @@ function Index() {
             .from("items")
             .select("*", { count: "exact", head: true })
             .eq("status", "resolved"),
-          supabase.from("items").select("*", { count: "exact", head: true }).eq("item_type", "found"),
+          supabase
+            .from("items")
+            .select("*", { count: "exact", head: true })
+            .eq("item_type", "found"),
         ]);
         return {
           total: total.count ?? 0,
@@ -203,4 +207,3 @@ function Index() {
     </div>
   );
 }
-

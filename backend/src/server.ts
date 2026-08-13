@@ -1,58 +1,59 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
-import dotenv from "dotenv";
-
-import authRoutes from "./routes/auth.routes.js";
-import itemsRoutes from "./routes/items.routes.js";
-import claimsRoutes from "./routes/claims.routes.js";
-import messagesRoutes from "./routes/messages.routes.js";
-import notificationsRoutes from "./routes/notifications.routes.js";
-import uploadRoutes from "./routes/upload.routes.js";
+import { env } from "./config/env.js";
+import apiRouter from "./routes/index.js";
+import { apiLimiter } from "./middleware/rate-limiter.js";
+import { errorHandler } from "./middleware/error.middleware.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load backend/.env first (primary), then root .env as fallback (no override)
-dotenv.config({ path: path.join(__dirname, "../.env") });
-dotenv.config({ path: path.join(__dirname, "../../.env"), override: false });
-
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = Number(env.PORT) || 5000;
 
-// Middleware
+// Security & Utility Middlewares
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(morgan("dev"));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Rate limit all API calls
+app.use("/api", apiLimiter);
 
 // Serve static uploads
 const uploadsPath = path.join(__dirname, "../uploads");
 app.use("/uploads", express.static(uploadsPath));
 
-// API Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/items", itemsRoutes);
-app.use("/api", claimsRoutes);
-app.use("/api", messagesRoutes);
-app.use("/api/notifications", notificationsRoutes);
-app.use("/api/upload", uploadRoutes);
+// Mount Unified API Router
+app.use("/api", apiRouter);
 
 // Health check endpoint
 app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+  res.json({
+    status: "ok",
+    environment: env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+  });
 });
 
-// Global error handler
-app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error("Unhandled Backend Error:", err);
-  res.status(500).json({ error: "Internal Server Error", details: String(err) });
-});
+// Global Centralized Error Handler
+app.use(errorHandler);
 
-app.listen(Number(PORT), "0.0.0.0", () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`=================================================`);
-  console.log(`🚀 FoundIt Backend API Server running on port ${PORT}`);
+  console.log(`🚀 FoundIt API Framework running on port ${PORT}`);
   console.log(`🔗 API Base URL: http://127.0.0.1:${PORT}/api`);
-  console.log(`📁 Uploads Static Dir: http://127.0.0.1:${PORT}/uploads`);
+  console.log(`🛡️  Security: Helmet + Rate Limiter Active`);
   console.log(`=================================================`);
 });
+
+export default app;

@@ -1,5 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { Compass, PlusCircle, LayoutDashboard, LogOut, Shield, Search, Sun, Moon } from "lucide-react";
+import {
+  Compass,
+  PlusCircle,
+  LayoutDashboard,
+  LogOut,
+  Shield,
+  Search,
+  Sun,
+  Moon,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
@@ -20,13 +29,15 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-foreground/15 bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
-        <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
+        <Link
+          to="/"
+          className="flex items-center gap-2 font-display text-lg font-bold tracking-tight"
+        >
           <span className="flex size-8 items-center justify-center rounded-sm bg-foreground text-background">
             <Search className="size-4" />
           </span>
           FoundIt
         </Link>
-
 
         <nav className="ml-4 hidden items-center gap-1 md:flex">
           <Button variant="ghost" size="sm" asChild>
@@ -63,7 +74,11 @@ export function SiteHeader() {
             title={isDark ? "Switch to light mode" : "Switch to dark mode"}
             className="size-9 rounded-full"
           >
-            {isDark ? <Sun className="size-4 text-amber-400" /> : <Moon className="size-4 text-slate-700" />}
+            {isDark ? (
+              <Sun className="size-4 text-amber-400" />
+            ) : (
+              <Moon className="size-4 text-slate-700" />
+            )}
             <span className="sr-only">Toggle theme</span>
           </Button>
           <NotificationBell />

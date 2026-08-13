@@ -50,7 +50,7 @@ function PostItem() {
   const [location, setLocation] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [contact, setContact] = useState("");
-  
+
   // Support multiple files
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -62,7 +62,7 @@ function PostItem() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
     const selectedFiles = Array.from(e.target.files);
-    
+
     setFiles((prev) => [...prev, ...selectedFiles]);
     const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
     setPreviews((prev) => [...prev, ...newPreviews]);
@@ -104,7 +104,10 @@ function PostItem() {
         void navigate({ to: "/items/$id", params: { id: newItem.id } });
         return;
       } catch (backendErr) {
-        console.warn("Backend API upload/create failed, attempting Supabase fallback...", backendErr);
+        console.warn(
+          "Backend API upload/create failed, attempting Supabase fallback...",
+          backendErr,
+        );
       }
 
       // 2. Fallback to Supabase if Express API is unreachable
@@ -160,8 +163,17 @@ function PostItem() {
           The more detail and photos you add, the faster the match.
         </p>
 
-        <form onSubmit={submit} className="mt-8 space-y-5 rounded-2xl border bg-card p-6 shadow-soft">
-          <Tabs value={type} onValueChange={(v) => { setType(v as ItemType); setContact(""); }}>
+        <form
+          onSubmit={submit}
+          className="mt-8 space-y-5 rounded-2xl border bg-card p-6 shadow-soft"
+        >
+          <Tabs
+            value={type}
+            onValueChange={(v) => {
+              setType(v as ItemType);
+              setContact("");
+            }}
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="lost">I lost something</TabsTrigger>
               <TabsTrigger value="found">I found something</TabsTrigger>
@@ -236,7 +248,9 @@ function PostItem() {
               <>
                 <Label htmlFor="contact">
                   WhatsApp number{" "}
-                  <span className="text-xs font-normal text-muted-foreground">(so the owner can reach you)</span>
+                  <span className="text-xs font-normal text-muted-foreground">
+                    (so the owner can reach you)
+                  </span>
                 </Label>
                 <div className="relative">
                   <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground select-none">
@@ -262,7 +276,10 @@ function PostItem() {
               </>
             ) : (
               <>
-                <Label htmlFor="contact">Contact note <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
+                <Label htmlFor="contact">
+                  Contact note{" "}
+                  <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+                </Label>
                 <Input
                   id="contact"
                   value={contact}
@@ -290,7 +307,9 @@ function PostItem() {
               <Upload className="size-5 text-primary" />
               <div className="text-center">
                 <span className="font-medium text-foreground">Click to upload photos</span>
-                <p className="text-xs text-muted-foreground mt-0.5">PNG, JPG or WEBP (select multiple)</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  PNG, JPG or WEBP (select multiple)
+                </p>
               </div>
             </label>
             <input
@@ -306,8 +325,15 @@ function PostItem() {
             {previews.length > 0 && (
               <div className="mt-3 grid grid-cols-4 gap-2">
                 {previews.map((url, idx) => (
-                  <div key={idx} className="group relative aspect-square overflow-hidden rounded-xl border bg-muted">
-                    <img src={url} alt={`Upload preview ${idx + 1}`} className="h-full w-full object-cover" />
+                  <div
+                    key={idx}
+                    className="group relative aspect-square overflow-hidden rounded-xl border bg-muted"
+                  >
+                    <img
+                      src={url}
+                      alt={`Upload preview ${idx + 1}`}
+                      className="h-full w-full object-cover"
+                    />
                     <button
                       type="button"
                       onClick={() => removeFile(idx)}

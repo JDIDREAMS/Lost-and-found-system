@@ -56,7 +56,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [studentId, setStudentId] = useState("");
-  
+
   // Password lost / reset state
   const [showForgot, setShowForgot] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
@@ -106,7 +106,7 @@ function AuthPage() {
       toast.success(
         isVerifiedStudent
           ? "Student account created & verified! Welcome to FoundIt."
-          : "Account created — welcome!"
+          : "Account created — welcome!",
       );
       void navigate({ to: "/dashboard" });
     } catch (err) {
@@ -135,29 +135,52 @@ function AuthPage() {
     }
   };
 
+  const [devResetUrl, setDevResetUrl] = useState<string | null>(null);
+
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resetEmail) {
-      toast.error("Please enter your registered school/account email.");
+      toast.error("Please enter your registered email address.");
       return;
     }
     setBusy(true);
+    setDevResetUrl(null);
+
+    let supabaseEmailSent = false;
+    let localTokenFound = false;
+
+    // 1. Send actual email to Gmail via Supabase Auth
     try {
-      await api.forgotPassword(resetEmail);
-      setResetSent(true);
-      toast.success("Password reset instructions generated!");
-    } catch {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
-      if (error) {
-        toast.error(error.message);
-      } else {
-        setResetSent(true);
-        toast.success("Password reset instructions sent to your email!");
+      if (!error) {
+        supabaseEmailSent = true;
       }
-    } finally {
-      setBusy(false);
+    } catch {
+      // Supabase email error
+    }
+
+    // 2. Also generate token on local Express backend if account exists locally
+    try {
+      const res = await api.forgotPassword(resetEmail);
+      if (res && res.resetToken) {
+        localTokenFound = true;
+        setDevResetUrl(`${window.location.origin}/reset-password?token=${res.resetToken}`);
+      }
+    } catch {
+      // Local backend error
+    }
+
+    setBusy(false);
+    setResetSent(true);
+
+    if (supabaseEmailSent) {
+      toast.success("Password reset email sent to your Gmail!");
+    } else if (localTokenFound) {
+      toast.success("Password reset link ready!");
+    } else {
+      toast.info("If an account exists with that email, reset instructions have been generated.");
     }
   };
 
@@ -190,7 +213,8 @@ function AuthPage() {
             Every returned item starts with someone posting it.
           </h2>
           <p className="mt-4 max-w-sm opacity-80">
-            Create an account with your school email or Student ID to post items, claim lost property, and connect with campus peers.
+            Create an account with your school email or Student ID to post items, claim lost
+            property, and connect with campus peers.
           </p>
         </div>
         <p className="text-sm opacity-70">Campus lost &amp; found board</p>
@@ -216,7 +240,8 @@ function AuthPage() {
                   <KeyRound className="size-6 text-primary" /> Password Lost?
                 </h1>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Enter your campus or account email address below and we'll send you a password reset link.
+                  Enter your campus or account email address below and we'll send you a password
+                  reset link.
                 </p>
               </div>
 
@@ -224,8 +249,20 @@ function AuthPage() {
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-300">
                   <p className="font-semibold">Reset link dispatched!</p>
                   <p className="mt-1 text-xs opacity-90">
-                    We've emailed instructions to <strong>{resetEmail}</strong>. Check your inbox or spam folder.
+                    We've emailed instructions to <strong>{resetEmail}</strong>. Check your inbox or
+                    spam folder.
                   </p>
+                  {devResetUrl && (
+                    <div className="mt-3 rounded-lg border bg-background p-2 text-xs">
+                      <p className="text-muted-foreground">Local Dev Link:</p>
+                      <a
+                        href={devResetUrl}
+                        className="break-all font-mono text-primary underline hover:opacity-80"
+                      >
+                        {devResetUrl}
+                      </a>
+                    </div>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
@@ -233,6 +270,7 @@ function AuthPage() {
                     onClick={() => {
                       setShowForgot(false);
                       setResetSent(false);
+                      setDevResetUrl(null);
                     }}
                   >
                     Return to sign in
@@ -326,7 +364,10 @@ function AuthPage() {
                       <div className="flex items-center justify-between">
                         <Label htmlFor="su-email">Email</Label>
                         {isEduEmail && (
-                          <Badge variant="outline" className="gap-1 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]">
+                          <Badge
+                            variant="outline"
+                            className="gap-1 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]"
+                          >
                             <CheckCircle2 className="size-3" /> School Domain Verified
                           </Badge>
                         )}
@@ -343,7 +384,10 @@ function AuthPage() {
 
                     <div className="space-y-1.5">
                       <Label htmlFor="su-studentid">
-                        Student / Staff ID <span className="text-xs font-normal text-muted-foreground">(Optional verification)</span>
+                        Student / Staff ID{" "}
+                        <span className="text-xs font-normal text-muted-foreground">
+                          (Optional verification)
+                        </span>
                       </Label>
                       <div className="relative">
                         <Input
@@ -378,10 +422,16 @@ function AuthPage() {
               </Tabs>
 
               <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
+                <span className="h-px flex-1 bg-border" /> or{" "}
+                <span className="h-px flex-1 bg-border" />
               </div>
 
-              <Button variant="outline" className="w-full" onClick={() => void google()} disabled={busy}>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => void google()}
+                disabled={busy}
+              >
                 Continue with Google
               </Button>
 

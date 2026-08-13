@@ -12,7 +12,6 @@ export interface User {
   role: string;
 }
 
-
 export interface Item {
   id: string;
   title: string;
@@ -107,7 +106,12 @@ export function getImageUrl(path: string | null): string | null {
 
 export const api = {
   // Auth
-  register: (payload: { email: string; password: string; name?: string | undefined; studentId?: string | undefined }) =>
+  register: (payload: {
+    email: string;
+    password: string;
+    name?: string | undefined;
+    studentId?: string | undefined;
+  }) =>
     request<{ token: string; user: User }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(payload),

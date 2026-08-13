@@ -103,6 +103,18 @@
       "isStudentVerified": true,
       "role": "user",
       "createdAt": "2026-08-13T16:24:25.548Z"
+    },
+    {
+      "id": "2c9646eb-a84e-45ac-a013-bce6776fda8c",
+      "email": "jayycrypt@gmail.com",
+      "passwordHash": "$2b$10$hUmaRh8b6HTogOAaSi5pbusOv.b2jXn4pYeX5mDAzpscdWQHxVavq",
+      "displayName": "kaykuffour",
+      "studentId": "20934881",
+      "isStudentVerified": true,
+      "role": "user",
+      "createdAt": "2026-08-13T19:30:43.830Z",
+      "resetToken": "4cd727f943609ea53541cd5ad7e43626b42791e65f9c14fbce082ff04c194d98",
+      "resetTokenExpires": 1786655364811
     }
   ],
   "items": [

@@ -11,7 +11,10 @@ export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
       { title: "Set New Password | FoundIt" },
-      { name: "description", content: "Set a new password for your FoundIt campus lost & found account." },
+      {
+        name: "description",
+        content: "Set a new password for your FoundIt campus lost & found account.",
+      },
     ],
   }),
   component: ResetPasswordPage,
@@ -47,6 +50,29 @@ function ResetPasswordPage() {
     }
 
     setBusy(true);
+
+    const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const token = searchParams?.get("token");
+
+    if (token) {
+      try {
+        const { api } = await import("@/lib/api");
+        await api.resetPassword({ token, password });
+        setSuccess(true);
+        toast.success("Password updated successfully!");
+        setTimeout(() => {
+          void navigate({ to: "/auth" });
+        }, 2000);
+        return;
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Failed to reset password.");
+        setBusy(false);
+        return;
+      } finally {
+        setBusy(false);
+      }
+    }
+
     const { error } = await supabase.auth.updateUser({ password });
     setBusy(false);
 
@@ -81,13 +107,8 @@ function ResetPasswordPage() {
           <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-6 text-center text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="mx-auto size-10" />
             <p className="mt-3 font-semibold">Password Reset Complete!</p>
-            <p className="mt-1 text-xs opacity-90">
-              Redirecting you to your dashboard...
-            </p>
-            <Button
-              className="mt-4 w-full"
-              onClick={() => void navigate({ to: "/dashboard" })}
-            >
+            <p className="mt-1 text-xs opacity-90">Redirecting you to your dashboard...</p>
+            <Button className="mt-4 w-full" onClick={() => void navigate({ to: "/dashboard" })}>
               Go to Dashboard Now
             </Button>
           </div>

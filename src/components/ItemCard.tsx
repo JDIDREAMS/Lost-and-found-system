@@ -47,6 +47,5 @@ export function ItemCard({ item }: { item: ItemRow }) {
         </div>
       </div>
     </Link>
-
   );
 }
