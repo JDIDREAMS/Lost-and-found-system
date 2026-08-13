@@ -3,22 +3,13 @@ import { z } from "zod";
 export const createReportSchema = z.object({
   target_type: z.enum(["item", "claim", "message"]),
   target_id: z.string().min(1, "Target ID is required"),
-  reason: z.enum([
-    "fraud",
-    "fake_claim",
-    "harassment",
-    "inappropriate",
-    "spam",
-    "other",
-  ]),
+  reason: z.enum(["fraud", "fake_claim", "harassment", "inappropriate", "spam", "other"]),
   description: z.string().max(1000).optional().nullable(),
 });
 
 export const resolveReportSchema = z.object({
   status: z.enum(["investigating", "resolved", "dismissed"]),
-  action_taken: z
-    .enum(["none", "item_removed", "warning_issued", "user_suspended"])
-    .optional(),
+  action_taken: z.enum(["none", "item_removed", "warning_issued", "user_suspended"]).optional(),
   admin_notes: z.string().max(1000).optional().nullable(),
 });
 

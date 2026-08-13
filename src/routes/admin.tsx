@@ -56,7 +56,10 @@ export const Route = createFileRoute("/admin")({
   component: Admin,
 });
 
-const REASON_LABELS: Record<string, { label: string; variant: "destructive" | "default" | "secondary" | "outline" }> = {
+const REASON_LABELS: Record<
+  string,
+  { label: string; variant: "destructive" | "default" | "secondary" | "outline" }
+> = {
   fraud: { label: "Fraudulent / Suspicious", variant: "destructive" },
   fake_claim: { label: "Fake Ownership Claim", variant: "destructive" },
   harassment: { label: "Harassment / Abuse", variant: "destructive" },
@@ -203,7 +206,9 @@ function Admin() {
     }
   };
 
-  const openReportsCount = (reports ?? []).filter((r) => r.status === "open" || r.status === "investigating").length;
+  const openReportsCount = (reports ?? []).filter(
+    (r) => r.status === "open" || r.status === "investigating",
+  ).length;
 
   const stats = [
     { label: "Active Escalations", value: openReportsCount, alert: openReportsCount > 0 },
@@ -220,13 +225,19 @@ function Admin() {
           <div>
             <div className="flex items-center gap-2">
               <ShieldAlert className="size-6 text-primary" />
-              <h1 className="font-display text-3xl font-semibold">Moderation &amp; Escalation Center</h1>
+              <h1 className="font-display text-3xl font-semibold">
+                Moderation &amp; Escalation Center
+              </h1>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              Review flagged content, enforce community rules, resolve disputed claims, and review audit logs.
+              Review flagged content, enforce community rules, resolve disputed claims, and review
+              audit logs.
             </p>
           </div>
-          <Badge variant="outline" className="border-primary/40 bg-primary/10 px-3 py-1 font-semibold text-primary">
+          <Badge
+            variant="outline"
+            className="border-primary/40 bg-primary/10 px-3 py-1 font-semibold text-primary"
+          >
             🛡️ Admin Privilege Active
           </Badge>
         </div>
@@ -250,7 +261,11 @@ function Admin() {
 
         {/* Navigation Tabs */}
         <div className="mt-8">
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => setActiveTab(v as "reports" | "listings" | "audit")}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-3 max-w-md">
               <TabsTrigger value="reports" className="relative gap-2 text-xs font-semibold">
                 <ShieldAlert className="size-3.5" />
@@ -304,14 +319,18 @@ function Admin() {
                         };
 
                         return (
-                          <TableRow key={report.id} className={report.status === "open" ? "bg-destructive/5" : ""}>
+                          <TableRow
+                            key={report.id}
+                            className={report.status === "open" ? "bg-destructive/5" : ""}
+                          >
                             <TableCell>
                               <div className="space-y-1">
                                 <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                                   {report.target_type}
                                 </span>
                                 <p className="font-semibold text-xs text-foreground">
-                                  {report.target_preview || `ID: ${report.target_id.slice(0, 8)}...`}
+                                  {report.target_preview ||
+                                    `ID: ${report.target_id.slice(0, 8)}...`}
                                 </p>
                                 {report.target_type === "item" && (
                                   <Link
@@ -378,18 +397,24 @@ function Admin() {
                                         handleOpenResolveDialog(
                                           report,
                                           "resolved",
-                                          report.target_type === "item" ? "item_removed" : "warning_issued",
+                                          report.target_type === "item"
+                                            ? "item_removed"
+                                            : "warning_issued",
                                         )
                                       }
                                     >
                                       <AlertTriangle className="size-3" />
-                                      {report.target_type === "item" ? "Remove Item" : "Take Action"}
+                                      {report.target_type === "item"
+                                        ? "Remove Item"
+                                        : "Take Action"}
                                     </Button>
                                     <Button
                                       size="sm"
                                       variant="ghost"
                                       className="h-7 gap-1 text-xs text-muted-foreground hover:bg-muted"
-                                      onClick={() => handleOpenResolveDialog(report, "dismissed", "none")}
+                                      onClick={() =>
+                                        handleOpenResolveDialog(report, "dismissed", "none")
+                                      }
                                     >
                                       <XCircle className="size-3" /> Dismiss
                                     </Button>
@@ -564,16 +589,18 @@ function Admin() {
                     Action to Take
                   </Label>
                   <div className="space-y-1.5">
-                    {[
-                      { id: "item_removed", label: "Remove Listing / Content" },
-                      { id: "warning_issued", label: "Issue Formal Warning to User" },
-                      { id: "user_suspended", label: "Suspend Account Privileges" },
-                      { id: "none", label: "No further penalty" },
-                    ].map((act) => (
+                    {(
+                      [
+                        { id: "item_removed", label: "Remove Listing / Content" },
+                        { id: "warning_issued", label: "Issue Formal Warning to User" },
+                        { id: "user_suspended", label: "Suspend Account Privileges" },
+                        { id: "none", label: "No further penalty" },
+                      ] as const
+                    ).map((act) => (
                       <button
                         type="button"
                         key={act.id}
-                        onClick={() => setResolutionAction(act.id as any)}
+                        onClick={() => setResolutionAction(act.id)}
                         className={`flex w-full items-center justify-between rounded-lg border p-2 text-left text-xs transition ${
                           resolutionAction === act.id
                             ? "border-destructive/60 bg-destructive/10 font-semibold text-destructive"

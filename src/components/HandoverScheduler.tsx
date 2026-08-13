@@ -75,22 +75,17 @@ export function HandoverScheduler({
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   // Form state
-  const [selectedLocation, setSelectedLocation] = useState(
-    SAFE_LOCATION_PRESETS[0]!,
-  );
+  const [selectedLocation, setSelectedLocation] = useState(SAFE_LOCATION_PRESETS[0]!);
   const [customLocation, setCustomLocation] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
   const [notes, setNotes] = useState("");
 
   // Feedback state
-  const [rating, setRating] = useState<"positive" | "neutral" | "negative">(
-    "positive",
-  );
+  const [rating, setRating] = useState<"positive" | "neutral" | "negative">("positive");
   const [selectedTags, setSelectedTags] = useState<string[]>([FEEDBACK_TAGS[0]!]);
   const [feedbackComment, setFeedbackComment] = useState("");
 
-  const activeLocation =
-    selectedLocation === "custom" ? customLocation : selectedLocation;
+  const activeLocation = selectedLocation === "custom" ? customLocation : selectedLocation;
 
   const isProposer = meetup?.proposed_by === userId;
   const isAccepted = meetup?.status === "accepted";
@@ -125,9 +120,7 @@ export function HandoverScheduler({
       setOpenModal(false);
       onUpdate();
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to propose meetup.",
-      );
+      toast.error(err instanceof Error ? err.message : "Failed to propose meetup.");
     } finally {
       setBusy(false);
     }
@@ -138,15 +131,11 @@ export function HandoverScheduler({
     try {
       await api.respondMeetup(claimId, status);
       toast.success(
-        status === "accepted"
-          ? "Meetup schedule accepted!"
-          : "Meetup proposal declined.",
+        status === "accepted" ? "Meetup schedule accepted!" : "Meetup proposal declined.",
       );
       onUpdate();
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to respond to meetup.",
-      );
+      toast.error(err instanceof Error ? err.message : "Failed to respond to meetup.");
     } finally {
       setBusy(false);
     }
@@ -157,19 +146,13 @@ export function HandoverScheduler({
     try {
       const res = await api.confirmHandover(claimId);
       if (res.isFullyCompleted) {
-        toast.success(
-          "🎉 Handover Completed! Item marked as successfully returned & resolved.",
-        );
+        toast.success("🎉 Handover Completed! Item marked as successfully returned & resolved.");
       } else {
-        toast.success(
-          "Confirmation recorded! Waiting for counterpart confirmation.",
-        );
+        toast.success("Confirmation recorded! Waiting for counterpart confirmation.");
       }
       onUpdate();
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to confirm handover.",
-      );
+      toast.error(err instanceof Error ? err.message : "Failed to confirm handover.");
     } finally {
       setBusy(false);
     }
@@ -203,9 +186,7 @@ export function HandoverScheduler({
       setOpenFeedbackModal(false);
       onUpdate();
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to submit feedback.",
-      );
+      toast.error(err instanceof Error ? err.message : "Failed to submit feedback.");
     } finally {
       setBusy(false);
     }
@@ -370,11 +351,7 @@ export function HandoverScheduler({
                     : "border-primary/30 bg-primary/15 text-primary"
               }`}
             >
-              {isAccepted
-                ? "Meetup Confirmed"
-                : isDeclined
-                  ? "Declined"
-                  : "Meetup Proposed"}
+              {isAccepted ? "Meetup Confirmed" : isDeclined ? "Declined" : "Meetup Proposed"}
             </Badge>
           </div>
 
@@ -383,9 +360,7 @@ export function HandoverScheduler({
               <Clock className="size-3 text-muted-foreground/70" />
               {formatDateTime(meetup.scheduled_time)}
             </span>
-            {meetup.notes && (
-              <span className="italic text-foreground/80">"{meetup.notes}"</span>
-            )}
+            {meetup.notes && <span className="italic text-foreground/80">"{meetup.notes}"</span>}
           </div>
 
           {/* Accept / Decline actions for counterpart */}
@@ -454,7 +429,8 @@ export function HandoverScheduler({
               <div>
                 <p className="font-semibold">Item Handover Fully Completed! 🎉</p>
                 <p className="mt-0.5 text-[11px] opacity-90">
-                  Both parties confirmed the return. The listing has been marked as <strong>Resolved</strong>.
+                  Both parties confirmed the return. The listing has been marked as{" "}
+                  <strong>Resolved</strong>.
                 </p>
               </div>
             </div>

@@ -30,9 +30,7 @@ export function TrustBadge({
   });
 
   const reputation = initialReputation || rep;
-  const isStudent = Boolean(
-    isStudentVerified ?? reputation?.isStudentVerified,
-  );
+  const isStudent = Boolean(isStudentVerified ?? reputation?.isStudentVerified);
 
   if (!isStudent && (!reputation || reputation.badges.length === 0)) {
     return null;

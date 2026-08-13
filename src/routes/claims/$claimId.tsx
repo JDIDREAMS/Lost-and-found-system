@@ -268,10 +268,7 @@ function ClaimThread() {
                 <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   <ShieldCheck className="size-4 text-primary" /> Submitted Proof of Ownership
                 </div>
-                <TrustBadge
-                  userId={isOwner ? claim.claimant_id : claim.items?.posted_by}
-                  compact
-                />
+                <TrustBadge userId={isOwner ? claim.claimant_id : claim.items?.posted_by} compact />
               </div>
 
               {proof &&

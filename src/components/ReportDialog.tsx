@@ -39,9 +39,7 @@ export function ReportDialog({
 }: ReportDialogProps) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [selectedReason, setSelectedReason] = useState<string>(
-    REPORT_REASONS[0]!.id,
-  );
+  const [selectedReason, setSelectedReason] = useState<string>(REPORT_REASONS[0]!.id);
   const [description, setDescription] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,12 +51,7 @@ export function ReportDialog({
         target_type: targetType,
         target_id: targetId,
         reason: selectedReason as
-          | "fraud"
-          | "fake_claim"
-          | "harassment"
-          | "inappropriate"
-          | "spam"
-          | "other",
+          "fraud" | "fake_claim" | "harassment" | "inappropriate" | "spam" | "other",
         description: description.trim() || null,
       });
 
@@ -68,9 +61,7 @@ export function ReportDialog({
       setOpen(false);
       setDescription("");
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to submit report.",
-      );
+      toast.error(err instanceof Error ? err.message : "Failed to submit report.");
     } finally {
       setBusy(false);
     }
@@ -98,8 +89,8 @@ export function ReportDialog({
             <DialogTitle>Report {targetType}</DialogTitle>
           </div>
           <DialogDescription>
-            Flag this {targetType} {targetTitle ? `("${targetTitle}")` : ""} for
-            investigation by the campus administration and moderation team.
+            Flag this {targetType} {targetTitle ? `("${targetTitle}")` : ""} for investigation by
+            the campus administration and moderation team.
           </DialogDescription>
         </DialogHeader>
 
@@ -143,12 +134,7 @@ export function ReportDialog({
           </div>
 
           <DialogFooter className="gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={busy}
-            >
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={busy}>
               Cancel
             </Button>
             <Button

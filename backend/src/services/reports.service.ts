@@ -1,9 +1,4 @@
-import {
-  store,
-  ReportRecord,
-  AuditLogRecord,
-  FeedbackRecord,
-} from "../db/store.js";
+import { store, ReportRecord, AuditLogRecord, FeedbackRecord } from "../db/store.js";
 import { ItemsService } from "./items.service.js";
 import { NotificationsService } from "./notifications.service.js";
 
@@ -64,7 +59,9 @@ export class ReportsService {
       let preview = "";
       if (r.target_type === "item") {
         const item = store.getItemById(r.target_id);
-        preview = item ? `Item: "${item.title}" (${item.item_type})` : "Item (Deleted or Not Found)";
+        preview = item
+          ? `Item: "${item.title}" (${item.item_type})`
+          : "Item (Deleted or Not Found)";
       } else if (r.target_type === "claim") {
         const claim = store.getClaimById(r.target_id);
         preview = claim ? `Claim message: "${claim.message.slice(0, 50)}..."` : "Claim";
@@ -180,7 +177,9 @@ export class ReportsService {
       .filter((i) => i.posted_by === userId && (i.status === "resolved" || i.status === "claimed"));
     const resolvedClaims = store
       .getClaims()
-      .filter((c) => c.claimant_id === userId && (c.status === "approved" || c.handover?.completed_at));
+      .filter(
+        (c) => c.claimant_id === userId && (c.status === "approved" || c.handover?.completed_at),
+      );
 
     const successfulReturnsCount = resolvedItems.length + resolvedClaims.length;
 
@@ -204,7 +203,10 @@ export class ReportsService {
       });
     }
 
-    if (successfulReturnsCount >= 3 || (successfulReturnsCount >= 1 && positiveFeedbackCount >= 1)) {
+    if (
+      successfulReturnsCount >= 3 ||
+      (successfulReturnsCount >= 1 && positiveFeedbackCount >= 1)
+    ) {
       badges.push({
         id: "frequent_helper",
         label: "Frequent Helper",

@@ -279,18 +279,17 @@ function ItemDetail() {
             <div>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant={item.item_type === "lost" ? "lost" : "found"} className="uppercase">
+                  <Badge
+                    variant={item.item_type === "lost" ? "lost" : "found"}
+                    className="uppercase"
+                  >
                     {item.item_type}
                   </Badge>
                   <Badge variant="muted">{item.category}</Badge>
                   <Badge variant="outline">{statusLabel[item.status]}</Badge>
                 </div>
                 {!isOwner && (
-                  <ReportDialog
-                    targetType="item"
-                    targetId={item.id}
-                    targetTitle={item.title}
-                  />
+                  <ReportDialog targetType="item" targetId={item.id} targetTitle={item.title} />
                 )}
               </div>
               <h1 className="mt-4 text-3xl font-semibold">{item.title}</h1>
