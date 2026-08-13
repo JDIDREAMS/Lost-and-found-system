@@ -37,9 +37,9 @@ export const itemSchema = z.object({
   contact_info: z
     .string()
     .max(100, "Contact info cannot exceed 100 characters")
-    .optional()
-    .nullable(),
   image_url: z.string().optional().nullable(),
+  video_url: z.string().optional().nullable(),
+  sensitive_details: z.string().max(1000, "Sensitive details cannot exceed 1000 characters").optional().nullable(),
 });
 
 export type ItemInput = z.infer<typeof itemSchema>;

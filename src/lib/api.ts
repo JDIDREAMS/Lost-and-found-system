@@ -21,6 +21,10 @@ export interface Item {
   location: string;
   date_occurred: string;
   image_url: string | null;
+  video_url?: string | null | undefined;
+  sensitive_details?: string | null | undefined;
+  has_sensitive_details?: boolean | undefined;
+  sensitive_details_unlocked?: boolean | undefined;
   status: "open" | "claimed" | "resolved";
   contact_info: string | null;
   posted_by: string | null;
@@ -346,7 +350,7 @@ export const api = {
       method: "PATCH",
     }),
 
-  // Upload photos
+  // Upload photos & media
   uploadPhotos: async (files: File[]): Promise<string[]> => {
     const formData = new FormData();
     files.forEach((file) => formData.append("photos", file));
@@ -355,6 +359,21 @@ export const api = {
       body: formData,
     });
     return res.urls;
+  },
+
+  uploadMedia: async (files: File[]): Promise<{ urls: string[]; videoUrl?: string }> => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("media", file));
+    const res = await request<{
+      urls: string[];
+      media: Array<{ url: string; type: "image" | "video"; name: string }>;
+    }>("/upload/media", {
+      method: "POST",
+      body: formData,
+    });
+    const video = res.media.find((m) => m.type === "video");
+    const imageUrls = res.media.filter((m) => m.type === "image").map((m) => m.url);
+    return { urls: imageUrls, videoUrl: video?.url };
   },
 
   // Moderation & Reports

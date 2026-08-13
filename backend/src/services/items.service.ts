@@ -102,6 +102,8 @@ export class ItemsService {
           location: item.location,
           date_occurred: item.date_occurred,
           image_url: item.image_url,
+          video_url: item.video_url,
+          sensitive_details: item.sensitive_details,
           status: item.status || "open",
           contact_info: item.contact_info,
           posted_by: item.posted_by,
@@ -111,7 +113,11 @@ export class ItemsService {
         .single();
 
       if (!error && data) {
-        return data as ItemRecord;
+        return {
+          ...(data as ItemRecord),
+          video_url: item.video_url || null,
+          sensitive_details: item.sensitive_details || null,
+        };
       }
     } catch {
       // ignore

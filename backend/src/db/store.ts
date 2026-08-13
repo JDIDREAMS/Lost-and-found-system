@@ -27,6 +27,8 @@ export interface ItemRecord {
   location: string;
   date_occurred: string;
   image_url: string | null; // single URL or JSON array of URLs
+  video_url?: string | null | undefined;
+  sensitive_details?: string | null | undefined;
   status: "open" | "claimed" | "resolved";
   contact_info: string | null;
   posted_by: string | null;

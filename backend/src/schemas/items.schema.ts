@@ -25,6 +25,8 @@ export const createItemSchema = z.object({
   date_occurred: z.string().min(1, "Valid occurrence date required"),
   contact_info: z.string().max(100).optional().nullable(),
   image_url: z.string().optional().nullable(),
+  video_url: z.string().optional().nullable(),
+  sensitive_details: z.string().max(1000).optional().nullable(),
 });
 
 export const updateItemSchema = createItemSchema.partial().extend({

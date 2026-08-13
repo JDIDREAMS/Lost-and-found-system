@@ -1,10 +1,20 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, Upload, X, Images } from "lucide-react";
+import {
+  Upload,
+  Loader2,
+  X,
+  Shield,
+  Video,
+  Image as ImageIcon,
+  Lock,
+  Sparkles,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/lib/api";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,45 +27,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CATEGORIES, type ItemType } from "@/lib/lostfound";
-import { api } from "@/lib/api";
+import { CATEGORIES } from "@/lib/lostfound";
 
 export const Route = createFileRoute("/post")({
   head: () => ({
     meta: [
-      { title: "Report a lost or found item | FoundIt" },
+      { title: "Post lost or found item | FoundIt" },
       {
         name: "description",
         content:
-          "Post a lost or found item with multiple photos, location and date so the right person can find it.",
+          "Report a lost item or publish something you found so its owner can safely retrieve it.",
       },
-      { property: "og:title", content: "Report a lost or found item | FoundIt" },
+      { property: "og:title", content: "Post item | FoundIt" },
       {
         property: "og:description",
-        content: "Add a listing to the campus lost and found board in under a minute.",
+        content: "Report a lost item or list a found item on FoundIt.",
       },
     ],
   }),
-  component: PostItem,
+  component: Post,
 });
 
-function PostItem() {
+function Post() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [busy, setBusy] = useState(false);
-  const [type, setType] = useState<ItemType>("lost");
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<string>(CATEGORIES[0]);
-  const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [contact, setContact] = useState("");
 
-  // Support multiple files
+  const [type, setType] = useState<"lost" | "found">("lost");
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState<string>(CATEGORIES[0]!);
+  const [description, setDescription] = useState("");
+  const [sensitiveDetails, setSensitiveDetails] = useState("");
+  const [location, setLocation] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [contact, setContact] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
+  const [previews, setPreviews] = useState<Array<{ url: string; isVideo: boolean }>>([]);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) void navigate({ to: "/auth" });
@@ -65,16 +73,20 @@ function PostItem() {
     if (!e.target.files?.length) return;
     const selectedFiles = Array.from(e.target.files);
 
+    const newMedia = selectedFiles.map((file) => ({
+      url: URL.createObjectURL(file),
+      isVideo: file.type.startsWith("video/"),
+    }));
+
     setFiles((prev) => [...prev, ...selectedFiles]);
-    const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
-    setPreviews((prev) => [...prev, ...newPreviews]);
+    setPreviews((prev) => [...prev, ...newMedia]);
   };
 
   const removeFile = (index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
     setPreviews((prev) => {
       const target = prev[index];
-      if (target) URL.revokeObjectURL(target);
+      if (target) URL.revokeObjectURL(target.url);
       return prev.filter((_, i) => i !== index);
     });
   };
@@ -83,25 +95,39 @@ function PostItem() {
     e.preventDefault();
     if (!user) return;
     setBusy(true);
+
     try {
       let imagePayload: string | null = null;
+      let videoUrl: string | null = null;
 
-      // 1. Try uploading via Express backend API
+      // 1. Try uploading via Express backend media endpoint
       try {
         if (files.length > 0) {
-          const urls = await api.uploadPhotos(files);
-          imagePayload = urls.length === 1 ? (urls[0] ?? null) : JSON.stringify(urls);
+          const uploadRes = await api.uploadMedia(files);
+          if (uploadRes.urls.length > 0) {
+            imagePayload =
+              uploadRes.urls.length === 1
+                ? uploadRes.urls[0] ?? null
+                : JSON.stringify(uploadRes.urls);
+          }
+          if (uploadRes.videoUrl) {
+            videoUrl = uploadRes.videoUrl;
+          }
         }
+
         const { item: newItem } = await api.createItem({
           title: title.trim(),
           description: description.trim(),
+          sensitive_details: sensitiveDetails.trim() || null,
           category,
           item_type: type,
           location: location.trim(),
           date_occurred: date,
           contact_info: contact.trim() || null,
           image_url: imagePayload,
+          video_url: videoUrl,
         });
+
         toast.success("Your report is live.");
         void qc.invalidateQueries({ queryKey: ["items"] });
         void qc.invalidateQueries({ queryKey: ["my-items"] });
@@ -120,7 +146,9 @@ function PostItem() {
       for (const file of files) {
         const ext = file.name.split(".").pop() || "jpg";
         const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("item-images").upload(path, file);
+        const { error: upErr } = await supabase.storage
+          .from("item-images")
+          .upload(path, file);
         if (upErr) throw upErr;
         uploadedPaths.push(path);
       }
@@ -129,7 +157,7 @@ function PostItem() {
         uploadedPaths.length === 0
           ? null
           : uploadedPaths.length === 1
-            ? (uploadedPaths[0] ?? null)
+            ? uploadedPaths[0] ?? null
             : JSON.stringify(uploadedPaths);
 
       const { data, error } = await supabase
@@ -144,19 +172,24 @@ function PostItem() {
           contact_info: contact.trim() || null,
           image_url: imagePayload,
           posted_by: user.id,
-          poster_name: (user.user_metadata?.["display_name"] as string) || user.email || "Member",
+          poster_name:
+            user.user_metadata?.["display_name"] ||
+            user.email?.split("@")[0] ||
+            "Member",
         })
-        .select("id")
+        .select()
         .single();
 
       if (error) throw error;
+
       toast.success("Your report is live.");
       void qc.invalidateQueries({ queryKey: ["items"] });
       void qc.invalidateQueries({ queryKey: ["my-items"] });
       void qc.invalidateQueries({ queryKey: ["my-smart-matches"] });
       void navigate({ to: "/items/$id", params: { id: data.id } });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not post the item.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to create post.";
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -166,36 +199,46 @@ function PostItem() {
     <div className="min-h-screen">
       <SiteHeader />
       <main className="mx-auto max-w-2xl px-4 py-10">
-        <h1 className="font-display text-3xl font-semibold">Report an item</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The more detail and photos you add, the faster the match.
+        <h1 className="font-display text-3xl font-semibold">Post an item</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Report something you lost, or help return something you found.
         </p>
 
-        <form
-          onSubmit={submit}
-          className="mt-8 space-y-5 rounded-2xl border bg-card p-6 shadow-soft"
-        >
-          <Tabs
-            value={type}
-            onValueChange={(v) => {
-              setType(v as ItemType);
-              setContact("");
-            }}
-          >
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="lost">I lost something</TabsTrigger>
-              <TabsTrigger value="found">I found something</TabsTrigger>
-            </TabsList>
-          </Tabs>
+        <form onSubmit={submit} className="mt-8 space-y-6">
+          {/* Post Type Selector */}
+          <div className="grid grid-cols-2 gap-2 rounded-xl border p-1">
+            <button
+              type="button"
+              onClick={() => setType("lost")}
+              className={`rounded-lg py-2.5 text-sm font-semibold transition ${
+                type === "lost"
+                  ? "bg-lost text-lost-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              I lost something
+            </button>
+            <button
+              type="button"
+              onClick={() => setType("found")}
+              className={`rounded-lg py-2.5 text-sm font-semibold transition ${
+                type === "found"
+                  ? "bg-found text-found-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              I found something
+            </button>
+          </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">Item name</Label>
             <Input
               id="title"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Black leather wallet"
+              placeholder="e.g. Silver MacBook Air M2 13-inch"
             />
           </div>
 
@@ -235,20 +278,52 @@ function PostItem() {
               required
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="Main Library, second floor"
+              placeholder="e.g. Main Library, second floor near study booths"
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="desc">Description</Label>
+            <Label htmlFor="desc">Public Description</Label>
             <Textarea
               id="desc"
               required
-              rows={5}
+              rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Colour, brand, distinguishing marks, what was inside…"
+              placeholder="Colour, brand, general appearance, where it was spotted…"
             />
+          </div>
+
+          {/* Protected Sensitive Detail Field */}
+          <div className="rounded-2xl border border-primary/25 bg-gradient-to-b from-primary/5 via-card to-card p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-primary">
+                  <Lock className="size-3.5" />
+                </div>
+                <Label htmlFor="sensitive-detail" className="font-semibold text-xs text-foreground">
+                  Sensitive Verification Detail{" "}
+                  <span className="font-normal text-muted-foreground">(Hidden from public)</span>
+                </Label>
+              </div>
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                🛡️ Secret Evidence
+              </span>
+            </div>
+
+            <Textarea
+              id="sensitive-detail"
+              rows={2}
+              value={sensitiveDetails}
+              onChange={(e) => setSensitiveDetails(e.target.value)}
+              placeholder="e.g. Engraved initials 'J.D.' on back, lock screen image is a sunset, exactly $45 in cash inside pocket..."
+              className="text-xs"
+            />
+
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              💡 <strong>How it protects you:</strong> Opportunists cannot see this secret detail.
+              It will stay hidden from the public and unlock <em>only</em> when you approve a legitimate claimant.
+            </p>
           </div>
 
           <div className="space-y-1.5">
@@ -257,7 +332,7 @@ function PostItem() {
                 <Label htmlFor="contact">
                   WhatsApp number{" "}
                   <span className="text-xs font-normal text-muted-foreground">
-                    (so the owner can reach you)
+                    (so the verified owner can reach you)
                   </span>
                 </Label>
                 <div className="relative">
@@ -271,16 +346,12 @@ function PostItem() {
                     className="pl-6"
                     value={contact}
                     onChange={(e) => {
-                      // Strip everything except digits and leading +
                       const raw = e.target.value.replace(/[^\d]/g, "");
                       setContact(raw);
                     }}
                     placeholder="2348012345678"
                   />
                 </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Enter your full number with country code, e.g. 2348012345678
-                </p>
               </>
             ) : (
               <>
@@ -292,61 +363,88 @@ function PostItem() {
                   id="contact"
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
-                  placeholder="Best reached in the evenings"
+                  placeholder="e.g. Best reached in the evenings"
                 />
               </>
             )}
           </div>
 
+          {/* Rich Media Evidence Uploader (Photos + Video) */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="photos">Photos (Upload multiple)</Label>
+              <div className="flex items-center gap-1.5">
+                <ImageIcon className="size-4 text-primary" />
+                <Label htmlFor="media-upload" className="font-semibold text-xs">
+                  Rich Evidence (Photos &amp; Short Video Clip)
+                </Label>
+              </div>
               {files.length > 0 && (
-                <span className="text-xs text-muted-foreground">
-                  {files.length} photo{files.length > 1 ? "s" : ""} selected
+                <span className="text-xs text-muted-foreground font-medium">
+                  {files.length} file{files.length > 1 ? "s" : ""} selected
                 </span>
               )}
             </div>
 
             <label
-              htmlFor="photos"
-              className="flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-sm text-muted-foreground transition hover:bg-muted/50"
+              htmlFor="media-upload"
+              className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed p-6 text-sm text-muted-foreground transition hover:bg-muted/50 text-center"
             >
-              <Upload className="size-5 text-primary" />
-              <div className="text-center">
-                <span className="font-medium text-foreground">Click to upload photos</span>
+              <div className="flex items-center gap-2 text-primary">
+                <Upload className="size-5" />
+                <Video className="size-5" />
+              </div>
+              <div>
+                <span className="font-medium text-foreground">
+                  Click to upload photos or short video
+                </span>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  PNG, JPG or WEBP (select multiple)
+                  Images (PNG, JPG, WebP) &amp; short video clips (MP4, WebM, MOV up to 25MB)
                 </p>
               </div>
             </label>
             <input
-              id="photos"
+              id="media-upload"
               type="file"
-              accept="image/*"
+              accept="image/*,video/mp4,video/webm,video/quicktime"
               multiple
               className="sr-only"
               onChange={handleFileChange}
             />
 
-            {/* Thumbnail previews */}
+            {/* Thumbnail previews & Video Player */}
             {previews.length > 0 && (
-              <div className="mt-3 grid grid-cols-4 gap-2">
-                {previews.map((url, idx) => (
+              <div className="mt-3 grid grid-cols-3 gap-2.5 sm:grid-cols-4">
+                {previews.map((item, idx) => (
                   <div
                     key={idx}
                     className="group relative aspect-square overflow-hidden rounded-xl border bg-muted"
                   >
-                    <img
-                      src={url}
-                      alt={`Upload preview ${idx + 1}`}
-                      className="h-full w-full object-cover"
-                    />
+                    {item.isVideo ? (
+                      <video
+                        src={item.url}
+                        className="h-full w-full object-cover"
+                        controls={false}
+                        muted
+                      />
+                    ) : (
+                      <img
+                        src={item.url}
+                        alt={`Upload preview ${idx + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+
+                    {item.isVideo && (
+                      <span className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
+                        <Video className="size-2.5" /> Video
+                      </span>
+                    )}
+
                     <button
                       type="button"
                       onClick={() => removeFile(idx)}
-                      className="absolute right-1 top-1 rounded-full bg-black/70 p-1 text-white opacity-90 transition hover:bg-red-600"
-                      title="Remove image"
+                      className="absolute right-1.5 top-1.5 rounded-full bg-black/70 p-1 text-white opacity-90 transition hover:bg-red-600"
+                      title="Remove file"
                     >
                       <X className="size-3.5" />
                     </button>
@@ -356,8 +454,16 @@ function PostItem() {
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={busy}>
-            {busy && <Loader2 className="size-4 animate-spin" />} Publish report
+          <Button type="submit" className="w-full h-11 text-base font-semibold" disabled={busy}>
+            {busy ? (
+              <>
+                <Loader2 className="size-4 animate-spin" /> Publishing Evidence...
+              </>
+            ) : (
+              <>
+                <Sparkles className="size-4" /> Publish report
+              </>
+            )}
           </Button>
         </form>
       </main>
