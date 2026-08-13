@@ -59,8 +59,8 @@
       "isStudentVerified": true,
       "role": "user",
       "createdAt": "2026-08-11T15:33:19.899Z",
-      "resetToken": "415d12797f41ad40ae4a1cfc6bfb84ac42185e50a9bbc14e501a16aae6a23a0d",
-      "resetTokenExpires": 1786645773043
+      "resetToken": "a0a4b7381c18abf0cab174f4dda2718e14ccbd52ab4f2d9efb8d31e7e14ae872",
+      "resetTokenExpires": 1786657564981
     },
     {
       "id": "f13a103e-cc60-4499-8087-1525e1b38e20",
