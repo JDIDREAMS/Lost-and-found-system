@@ -51,7 +51,8 @@ function ResetPasswordPage() {
 
     setBusy(true);
 
-    const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const searchParams =
+      typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
     const token = searchParams?.get("token");
 
     if (token) {

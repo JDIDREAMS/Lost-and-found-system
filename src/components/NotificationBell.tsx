@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { Bell, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,23 +28,47 @@ export function NotificationBell() {
       setItems([]);
       return;
     }
+
     const load = async () => {
-      const { data } = await supabase
-        .from("notifications")
-        .select("id, text, link, is_read, created_at")
-        .order("created_at", { ascending: false })
-        .limit(20);
-      setItems(data ?? []);
+      // 1. Try fetching via user-scoped Express API
+      try {
+        const { notifications } = await api.getNotifications();
+        setItems(notifications);
+        return;
+      } catch {
+        // Fallback to Supabase
+      }
+
+      // 2. User-scoped Supabase query
+      try {
+        const { data } = await supabase
+          .from("notifications")
+          .select("id, text, link, is_read, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(20);
+        setItems(data ?? []);
+      } catch {
+        setItems([]);
+      }
     };
+
     void load();
+
     const channel = supabase
-      .channel("notifications-bell")
+      .channel(`notifications-bell-${user.id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "notifications" },
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
         () => void load(),
       )
       .subscribe();
+
     return () => {
       void supabase.removeChannel(channel);
     };
@@ -54,8 +79,35 @@ export function NotificationBell() {
   const unread = items.filter((n) => !n.is_read).length;
 
   const markAll = async () => {
-    await supabase.from("notifications").update({ is_read: true }).eq("is_read", false);
     setItems((prev) => prev.map((n) => ({ ...n, is_read: true })));
+
+    try {
+      await api.markAllNotificationsRead();
+    } catch {
+      // Fallback to Supabase scoped to current user
+      await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("user_id", user.id)
+        .eq("is_read", false);
+    }
+  };
+
+  const markOne = async (n: NotificationRow) => {
+    setOpen(false);
+    setItems((prev) => prev.map((item) => (item.id === n.id ? { ...item, is_read: true } : item)));
+
+    try {
+      await api.markNotificationRead(n.id);
+    } catch {
+      await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("id", n.id)
+        .eq("user_id", user.id);
+    }
+
+    if (n.link) void navigate({ to: n.link });
   };
 
   return (
@@ -91,11 +143,7 @@ export function NotificationBell() {
                 <li key={n.id}>
                   <button
                     className="block w-full px-4 py-3 text-left hover:bg-surface"
-                    onClick={() => {
-                      setOpen(false);
-                      void supabase.from("notifications").update({ is_read: true }).eq("id", n.id);
-                      if (n.link) void navigate({ to: n.link });
-                    }}
+                    onClick={() => void markOne(n)}
                   >
                     <span className="flex items-start gap-2">
                       {!n.is_read && (

@@ -3,7 +3,15 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { store, UserRecord } from "../db/store.js";
-import { JWT_SECRET, requireAuth, AuthenticatedRequest } from "../middleware/auth.js";
+import { requireAuth, AuthenticatedRequest } from "../middleware/auth.middleware.js";
+import { env } from "../config/env.js";
+import { validateRequest } from "../middleware/validate.js";
+import {
+  registerSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from "../schemas/auth.schema.js";
 
 const router = Router();
 
@@ -23,19 +31,9 @@ function isSchoolEmail(email: string): boolean {
 }
 
 // POST /api/auth/register
-router.post("/register", async (req, res) => {
+router.post("/register", validateRequest({ body: registerSchema }), async (req, res) => {
   try {
     const { email, password, name, studentId } = req.body;
-
-    if (!email || !password) {
-      res.status(400).json({ error: "Email and password are required" });
-      return;
-    }
-
-    if (password.length < 6) {
-      res.status(400).json({ error: "Password must be at least 6 characters" });
-      return;
-    }
 
     const existingUser = store.getUserByEmail(email);
     if (existingUser) {
@@ -60,7 +58,18 @@ router.post("/register", async (req, res) => {
 
     store.addUser(newUser);
 
-    const token = jwt.sign({ userId: newUser.id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign(
+      {
+        id: newUser.id,
+        email: newUser.email,
+        displayName: newUser.displayName,
+        studentId: newUser.studentId,
+        isStudentVerified: newUser.isStudentVerified,
+        role: newUser.role,
+      },
+      env.JWT_SECRET,
+      { expiresIn: "7d" },
+    );
 
     res.status(201).json({
       token,
@@ -79,14 +88,9 @@ router.post("/register", async (req, res) => {
 });
 
 // POST /api/auth/login
-router.post("/login", async (req, res) => {
+router.post("/login", validateRequest({ body: loginSchema }), async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      res.status(400).json({ error: "Email and password are required" });
-      return;
-    }
 
     const user = store.getUserByEmail(email);
     if (!user) {
@@ -100,7 +104,18 @@ router.post("/login", async (req, res) => {
       return;
     }
 
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        studentId: user.studentId,
+        isStudentVerified: user.isStudentVerified,
+        role: user.role,
+      },
+      env.JWT_SECRET,
+      { expiresIn: "7d" },
+    );
 
     res.json({
       token,
@@ -134,50 +149,39 @@ router.get("/me", requireAuth, (req: AuthenticatedRequest, res) => {
 });
 
 // POST /api/auth/forgot-password
-router.post("/forgot-password", async (req, res) => {
-  try {
-    const { email } = req.body;
+router.post(
+  "/forgot-password",
+  validateRequest({ body: forgotPasswordSchema }),
+  async (req, res) => {
+    try {
+      const { email } = req.body;
 
-    if (!email) {
-      res.status(400).json({ error: "Email is required" });
-      return;
+      const user = store.getUserByEmail(email);
+      if (!user) {
+        // Return success anyway for security to prevent email enumeration
+        res.json({ message: "Password reset instructions generated if account exists" });
+        return;
+      }
+
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      const resetTokenExpires = Date.now() + 3600000; // 1 hour
+
+      store.updateUser(user.id, { resetToken, resetTokenExpires });
+
+      res.json({
+        message: "Password reset instructions generated",
+        resetToken, // Returned in dev mode for easy testing
+      });
+    } catch (err) {
+      res.status(500).json({ error: "Forgot password request failed", details: String(err) });
     }
-
-    const user = store.getUserByEmail(email);
-    if (!user) {
-      // Return success anyway for security so user enumeration is prevented
-      res.json({ message: "Password reset token generated if account exists" });
-      return;
-    }
-
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetTokenExpires = Date.now() + 3600000; // 1 hour
-
-    store.updateUser(user.id, { resetToken, resetTokenExpires });
-
-    res.json({
-      message: "Password reset link generated",
-      resetToken, // Returned in dev mode for easy testing
-    });
-  } catch (err) {
-    res.status(500).json({ error: "Forgot password request failed", details: String(err) });
-  }
-});
+  },
+);
 
 // POST /api/auth/reset-password
-router.post("/reset-password", async (req, res) => {
+router.post("/reset-password", validateRequest({ body: resetPasswordSchema }), async (req, res) => {
   try {
     const { token, password } = req.body;
-
-    if (!token || !password) {
-      res.status(400).json({ error: "Token and new password are required" });
-      return;
-    }
-
-    if (password.length < 6) {
-      res.status(400).json({ error: "Password must be at least 6 characters" });
-      return;
-    }
 
     const user = store.getUserByResetToken(token);
     if (!user) {
@@ -192,7 +196,7 @@ router.post("/reset-password", async (req, res) => {
       resetTokenExpires: null,
     });
 
-    res.json({ message: "Password updated successfully" });
+    res.json({ message: "Password reset successful. You can now log in." });
   } catch (err) {
     res.status(500).json({ error: "Reset password failed", details: String(err) });
   }

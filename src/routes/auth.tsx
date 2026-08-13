@@ -3,7 +3,6 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Loader2, GraduationCap, CheckCircle2, KeyRound, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -182,21 +181,6 @@ function AuthPage() {
     } else {
       toast.info("If an account exists with that email, reset instructions have been generated.");
     }
-  };
-
-  const google = async () => {
-    setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      setBusy(false);
-      toast.error("Google sign-in failed. Please try again.");
-      return;
-    }
-    if (result.redirected) return;
-    setBusy(false);
-    void navigate({ to: "/dashboard" });
   };
 
   return (
@@ -420,20 +404,6 @@ function AuthPage() {
                   </form>
                 </TabsContent>
               </Tabs>
-
-              <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="h-px flex-1 bg-border" /> or{" "}
-                <span className="h-px flex-1 bg-border" />
-              </div>
-
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => void google()}
-                disabled={busy}
-              >
-                Continue with Google
-              </Button>
 
               <p className="mt-6 text-center text-sm text-muted-foreground">
                 <Link to="/browse" className="underline-offset-2 hover:underline">

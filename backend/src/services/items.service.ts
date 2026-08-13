@@ -62,11 +62,7 @@ export class ItemsService {
 
   static async getById(id: string): Promise<ItemRecord | null> {
     try {
-      const { data, error } = await supabaseAdmin
-        .from("items")
-        .select("*")
-        .eq("id", id)
-        .single();
+      const { data, error } = await supabaseAdmin.from("items").select("*").eq("id", id).single();
       if (!error && data) return data as ItemRecord;
     } catch {
       // fallback

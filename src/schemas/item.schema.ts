@@ -34,7 +34,11 @@ export const itemSchema = z.object({
     .min(2, "Location must be at least 2 characters")
     .max(100, "Location cannot exceed 100 characters"),
   date_occurred: z.string().min(1, "Please select an incident date"),
-  contact_info: z.string().max(100, "Contact info cannot exceed 100 characters").optional().nullable(),
+  contact_info: z
+    .string()
+    .max(100, "Contact info cannot exceed 100 characters")
+    .optional()
+    .nullable(),
   image_url: z.string().optional().nullable(),
 });
 

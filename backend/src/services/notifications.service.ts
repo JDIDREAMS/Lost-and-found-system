@@ -51,14 +51,29 @@ export class NotificationsService {
     return newRecord;
   }
 
-  static async markRead(id: string, userId?: string): Promise<void> {
+  static async markRead(id: string, userId: string): Promise<void> {
     try {
-      await supabaseAdmin.from("notifications").update({ is_read: true }).eq("id", id);
+      await supabaseAdmin
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("id", id)
+        .eq("user_id", userId);
     } catch {
       // fallback
     }
-    if (userId) {
-      store.markNotificationRead(id, userId);
+    store.markNotificationRead(id, userId);
+  }
+
+  static async markAllRead(userId: string): Promise<void> {
+    try {
+      await supabaseAdmin
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("user_id", userId)
+        .eq("is_read", false);
+    } catch {
+      // fallback
     }
+    store.markAllNotificationsRead(userId);
   }
 }
