@@ -337,6 +337,17 @@ class Store {
     }
     return null;
   }
+
+  public markAllNotificationsRead(userId: string) {
+    let changed = false;
+    for (const notif of this.db.notifications) {
+      if (notif.user_id === userId && !notif.is_read) {
+        notif.is_read = true;
+        changed = true;
+      }
+    }
+    if (changed) this.save();
+  }
 }
 
 export const store = new Store();

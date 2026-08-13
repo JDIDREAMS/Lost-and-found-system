@@ -4,9 +4,11 @@ import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 
 export class ItemsController {
   static async list(req: AuthenticatedRequest, res: Response): Promise<void> {
-    const { keyword, category, type, status } = req.query;
+    const rawKeyword = (req.query["keyword"] || req.query["query"] || req.query["q"]) as
+      string | undefined;
+    const { category, type, status } = req.query;
     const items = await ItemsService.getAll({
-      keyword: keyword as string,
+      keyword: rawKeyword ? String(rawKeyword).trim() : undefined,
       category: category as string,
       item_type: type as "lost" | "found",
       status: status as string,
@@ -25,7 +27,16 @@ export class ItemsController {
 
   static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
     const user = req.user!;
-    const { title, description, category, item_type, location, date_occurred, image_url, contact_info } = req.body;
+    const {
+      title,
+      description,
+      category,
+      item_type,
+      location,
+      date_occurred,
+      image_url,
+      contact_info,
+    } = req.body;
 
     const item = await ItemsService.create(
       {

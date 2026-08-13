@@ -138,9 +138,17 @@ export const api = {
     }),
 
   // Items
-  getItems: (params?: { query?: string; category?: string; type?: string; status?: string }) => {
+  getItems: (params?: {
+    keyword?: string;
+    query?: string;
+    q?: string;
+    category?: string;
+    type?: string;
+    status?: string;
+  }) => {
     const search = new URLSearchParams();
-    if (params?.query) search.set("query", params.query);
+    const kw = params?.keyword || params?.query || params?.q;
+    if (kw) search.set("keyword", kw);
     if (params?.category) search.set("category", params.category);
     if (params?.type) search.set("type", params.type);
     if (params?.status) search.set("status", params.status);
@@ -180,7 +188,7 @@ export const api = {
   getClaimById: (id: string) => request<{ claim: Claim; item: Item }>(`/claims/${id}`),
 
   updateClaimStatus: (claimId: string, status: "approved" | "rejected" | "pending") =>
-    request<{ claim: Claim }>(`/claims/${claimId}`, {
+    request<{ claim: Claim }>(`/claims/${claimId}/status`, {
       method: "PATCH",
       body: JSON.stringify({ status }),
     }),
@@ -198,7 +206,12 @@ export const api = {
   getNotifications: () => request<{ notifications: Notification[] }>("/notifications"),
 
   markNotificationRead: (id: string) =>
-    request<{ notification: Notification }>(`/notifications/${id}/read`, {
+    request<{ message: string }>(`/notifications/${id}/read`, {
+      method: "PATCH",
+    }),
+
+  markAllNotificationsRead: () =>
+    request<{ message: string }>("/notifications/read-all", {
       method: "PATCH",
     }),
 
