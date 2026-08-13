@@ -47,13 +47,23 @@ export interface Message {
   created_at: string;
 }
 
-export interface Notification {
-  id: string;
-  user_id: string;
-  text: string;
-  link: string | null;
-  is_read: boolean;
-  created_at: string;
+export interface MatchReason {
+  type: "category" | "keywords" | "location" | "date";
+  label: string;
+  points: number;
+}
+
+export interface ScoredMatch {
+  item: Item;
+  score: number;
+  confidence: "high" | "medium" | "low";
+  reasons: string[];
+  breakdown: MatchReason[];
+}
+
+export interface UserSmartMatches {
+  sourceItem: Item;
+  matches: ScoredMatch[];
 }
 
 function getAuthToken(): string | null {
@@ -174,6 +184,13 @@ export const api = {
     request<{ message: string }>(`/items/${id}`, {
       method: "DELETE",
     }),
+
+  // Smart Matches
+  getItemMatches: (id: string, minScore = 40) =>
+    request<{ matches: ScoredMatch[] }>(`/items/${id}/matches?minScore=${minScore}`),
+
+  getMySmartMatches: () =>
+    request<{ results: UserSmartMatches[] }>("/items/smart-matches/mine"),
 
   // Claims
   submitClaim: (itemId: string, message: string) =>

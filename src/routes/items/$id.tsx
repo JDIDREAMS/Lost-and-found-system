@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
 import { ItemImage, parseImagePaths } from "@/components/ItemImage";
+import { SmartMatchesWidget } from "@/components/SmartMatchesWidget";
 
 function ItemGallery({
   imagePayload,
@@ -438,6 +439,15 @@ function ItemDetail() {
                   )}
                 </div>
               )}
+
+              {/* Smart Potential Matches Section */}
+              <div className="mt-8 pt-4">
+                <SmartMatchesWidget
+                  itemId={item.id}
+                  itemType={item.item_type}
+                  title={item.title}
+                />
+              </div>
             </div>
           </div>
         )}

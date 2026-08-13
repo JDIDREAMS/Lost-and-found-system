@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Loader2, GraduationCap, CheckCircle2, KeyRound, ArrowLeft } from "lucide-react";
+import {
+  Loader2,
+  GraduationCap,
+  CheckCircle2,
+  KeyRound,
+  ArrowLeft,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +63,8 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [studentId, setStudentId] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
 
   // Password lost / reset state
   const [showForgot, setShowForgot] = useState(false);
@@ -318,13 +328,28 @@ function AuthPage() {
                           Forgot password?
                         </button>
                       </div>
-                      <Input
-                        id="si-pass"
-                        type="password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
+                      <div className="relative">
+                        <Input
+                          id="si-pass"
+                          type={showPassword ? "text" : "password"}
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="size-4" />
+                          ) : (
+                            <Eye className="size-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                     <Button type="submit" className="w-full" disabled={busy}>
                       {busy && <Loader2 className="size-4 animate-spin" />} Sign in
@@ -388,14 +413,29 @@ function AuthPage() {
 
                     <div className="space-y-1.5">
                       <Label htmlFor="su-pass">Password</Label>
-                      <Input
-                        id="su-pass"
-                        type="password"
-                        required
-                        minLength={6}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
+                      <div className="relative">
+                        <Input
+                          id="su-pass"
+                          type={showSignUpPassword ? "text" : "password"}
+                          required
+                          minLength={6}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                          aria-label={showSignUpPassword ? "Hide password" : "Show password"}
+                        >
+                          {showSignUpPassword ? (
+                            <EyeOff className="size-4" />
+                          ) : (
+                            <Eye className="size-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
 
                     <Button type="submit" className="w-full" disabled={busy}>

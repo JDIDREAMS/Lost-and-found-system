@@ -7,8 +7,15 @@ import { createItemSchema, updateItemSchema } from "../schemas/items.schema.js";
 const router = Router();
 
 router.get("/", optionalAuth, ItemsController.list);
+router.get("/smart-matches/mine", requireAuth, ItemsController.getMySmartMatches);
 router.get("/:id", optionalAuth, ItemsController.getById);
-router.post("/", requireAuth, validateRequest({ body: createItemSchema }), ItemsController.create);
+router.get("/:id/matches", optionalAuth, ItemsController.getMatches);
+router.post(
+  "/",
+  requireAuth,
+  validateRequest({ body: createItemSchema }),
+  ItemsController.create,
+);
 router.patch(
   "/:id",
   requireAuth,

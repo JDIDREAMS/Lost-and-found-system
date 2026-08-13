@@ -1,5 +1,6 @@
 import { Response } from "express";
 import { ItemsService } from "../services/items.service.js";
+import { SmartMatcherService } from "../services/matcher.service.js";
 import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 
 export class ItemsController {
@@ -23,6 +24,19 @@ export class ItemsController {
       return;
     }
     res.json({ item });
+  }
+
+  static async getMatches(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const itemId = req.params["id"] as string;
+    const minScore = req.query["minScore"] ? Number(req.query["minScore"]) : 40;
+    const matches = await SmartMatcherService.findMatchesForItem(itemId, minScore);
+    res.json({ matches });
+  }
+
+  static async getMySmartMatches(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const user = req.user!;
+    const results = await SmartMatcherService.getMatchesForUser(user.id);
+    res.json({ results });
   }
 
   static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -54,6 +68,9 @@ export class ItemsController {
       },
       user.token,
     );
+
+    // Asynchronously evaluate smart matches and trigger push notifications
+    void SmartMatcherService.runAutomatedMatchAlerts(item);
 
     res.status(201).json({ item });
   }
