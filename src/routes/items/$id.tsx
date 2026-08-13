@@ -12,6 +12,10 @@ import {
   MessageCircle,
   ShieldCheck,
   Tag,
+  Lock,
+  LockOpen,
+  Video,
+  Play,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,62 +30,86 @@ import { TrustBadge } from "@/components/TrustBadge";
 
 function ItemGallery({
   imagePayload,
+  videoUrl,
   category,
   title,
 }: {
   imagePayload: string | null;
-  category?: string;
+  videoUrl?: string | null | undefined;
+  category?: string | undefined;
   title: string;
 }) {
   const images = parseImagePaths(imagePayload);
+  const [selectedMedia, setSelectedMedia] = useState<"image" | "video">("image");
   const [selectedIdx, setSelectedIdx] = useState(0);
 
-  if (images.length <= 1) {
-    return (
-      <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
-        <ItemImage
-          path={images[0] ?? null}
-          category={category}
-          alt={title}
-          eager
-          className="aspect-[4/3] w-full"
-        />
-      </div>
-    );
-  }
+  const hasMultiple = images.length > 1 || Boolean(videoUrl);
 
   return (
     <div className="space-y-3">
       <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
-        <ItemImage
-          path={images[selectedIdx] ?? images[0] ?? null}
-          category={category}
-          alt={`${title} image ${selectedIdx + 1}`}
-          eager
-          className="aspect-[4/3] w-full"
-        />
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {images.map((path, idx) => (
-          <button
-            key={idx}
-            type="button"
-            onClick={() => setSelectedIdx(idx)}
-            className={`relative aspect-square w-16 overflow-hidden rounded-xl border transition ${
-              selectedIdx === idx
-                ? "ring-2 ring-primary border-primary"
-                : "opacity-70 hover:opacity-100"
-            }`}
-          >
-            <ItemImage
-              path={path}
-              category={category}
-              alt={`${title} thumbnail ${idx + 1}`}
-              className="h-full w-full object-cover"
+        {selectedMedia === "video" && videoUrl ? (
+          <div className="aspect-[4/3] w-full bg-black flex items-center justify-center">
+            <video
+              src={videoUrl}
+              controls
+              autoPlay
+              className="h-full w-full object-contain"
             />
-          </button>
-        ))}
+          </div>
+        ) : (
+          <ItemImage
+            path={images[selectedIdx] ?? images[0] ?? null}
+            category={category}
+            alt={`${title} image ${selectedIdx + 1}`}
+            eager
+            className="aspect-[4/3] w-full object-cover"
+          />
+        )}
       </div>
+
+      {hasMultiple && (
+        <div className="flex flex-wrap items-center gap-2">
+          {images.map((path, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => {
+                setSelectedMedia("image");
+                setSelectedIdx(idx);
+              }}
+              className={`relative aspect-square w-16 overflow-hidden rounded-xl border transition ${
+                selectedMedia === "image" && selectedIdx === idx
+                  ? "ring-2 ring-primary border-primary"
+                  : "opacity-70 hover:opacity-100"
+              }`}
+            >
+              <ItemImage
+                path={path}
+                category={category}
+                alt={`${title} thumbnail ${idx + 1}`}
+                className="h-full w-full object-cover"
+              />
+            </button>
+          ))}
+
+          {videoUrl && (
+            <button
+              type="button"
+              onClick={() => setSelectedMedia("video")}
+              className={`relative aspect-square w-16 overflow-hidden rounded-xl border bg-black flex flex-col items-center justify-center text-white transition ${
+                selectedMedia === "video"
+                  ? "ring-2 ring-primary border-primary"
+                  : "opacity-70 hover:opacity-100"
+              }`}
+              title="Watch video evidence"
+            >
+              <Play className="size-5 fill-white text-white" />
+              <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wider">Video</span>
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -272,6 +300,7 @@ function ItemDetail() {
           <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
             <ItemGallery
               imagePayload={item.image_url}
+              videoUrl={item.video_url}
               category={item.category}
               title={item.title}
             />
@@ -315,6 +344,42 @@ function ItemDetail() {
                   <TrustBadge userId={item.posted_by} compact />
                 </div>
               </dl>
+
+              {/* Sensitive Verification Detail Card (Protected vs Unlocked) */}
+              {item.sensitive_details ? (
+                <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-bold text-emerald-800 dark:text-emerald-300">
+                      <LockOpen className="size-4 text-emerald-600" />
+                      <span>Sensitive Verification Evidence (Unlocked)</span>
+                    </div>
+                    <Badge variant="outline" className="border-emerald-500/40 text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-500/20">
+                      Verified Access
+                    </Badge>
+                  </div>
+                  <div className="rounded-xl border border-emerald-500/20 bg-background/80 p-3 font-mono text-xs text-foreground">
+                    {item.sensitive_details}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    This private identifier was recorded by the poster and unlocked because you have verified authorization.
+                  </p>
+                </div>
+              ) : item.has_sensitive_details ? (
+                <div className="mt-6 rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-semibold text-foreground">
+                      <Lock className="size-4 text-primary" />
+                      <span>Sensitive Verification Detail Protected</span>
+                    </div>
+                    <Badge variant="secondary" className="text-[10px]">
+                      🔒 Locked from public
+                    </Badge>
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed">
+                    The poster recorded secret verification evidence for this item. To prevent opportunists, this remains protected and will unlock automatically once your proof of ownership is approved.
+                  </p>
+                </div>
+              ) : null}
 
               {isOwner ? (
                 <div className="mt-8 rounded-2xl border bg-card p-5 shadow-soft">
