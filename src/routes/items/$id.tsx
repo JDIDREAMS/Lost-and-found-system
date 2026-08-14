@@ -333,7 +333,9 @@ function ItemDetail() {
                 )}
               </div>
               <h1 className="mt-4 text-2xl sm:text-3xl font-semibold break-words">{item.title}</h1>
-              <p className="mt-3 whitespace-pre-line text-muted-foreground break-words">{item.description}</p>
+              <p className="mt-3 whitespace-pre-line text-muted-foreground break-words">
+                {item.description}
+              </p>
 
               <dl className="mt-6 space-y-2.5 text-sm">
                 <div className="flex items-center gap-2">

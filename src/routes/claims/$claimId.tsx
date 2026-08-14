@@ -180,12 +180,15 @@ export function ClaimThread() {
           filter: `claim_id=eq.${claimId}`,
         },
         (payload) => {
-          qc.setQueryData<MessageRow[]>(["claim-messages", claimId], (prev: MessageRow[] | undefined) => {
-            const current = prev ?? [];
-            const row = payload.new as MessageRow;
-            if (current.some((m) => m.id === row.id)) return current;
-            return [...current, row];
-          });
+          qc.setQueryData<MessageRow[]>(
+            ["claim-messages", claimId],
+            (prev: MessageRow[] | undefined) => {
+              const current = prev ?? [];
+              const row = payload.new as MessageRow;
+              if (current.some((m) => m.id === row.id)) return current;
+              return [...current, row];
+            },
+          );
         },
       )
       .subscribe();
