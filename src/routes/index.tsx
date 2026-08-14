@@ -181,7 +181,7 @@ function Index() {
               </Link>
             </Button>
           </div>
-          <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(220px, 100%), 1fr))" }}>
+          <div className="grid gap-[clamp(1rem,3vw,1.5rem)]" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(180px, 100%), 1fr))" }}>
             {(recent ?? []).map((item) => (
               <ItemCard key={item.id} item={item} />
             ))}

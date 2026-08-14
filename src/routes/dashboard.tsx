@@ -147,10 +147,10 @@ function Dashboard() {
   });
 
   const myClaims = (allClaimsData?.claims ?? []).filter(
-    (c) => c.claimant_id === user?.id || (user?.email && c.claimant_id === user.email),
+    (c: ClaimWithItem) => c.claimant_id === user?.id || (user?.email && c.claimant_id === user.email),
   );
 
-  const receivedClaims = (allClaimsData?.claims ?? []).filter((c) => {
+  const receivedClaims = (allClaimsData?.claims ?? []).filter((c: ClaimWithItem) => {
     const isMyItem =
       c.items?.posted_by === user?.id || (user?.email && c.items?.posted_by === user.email);
     const isNotMyClaim = c.claimant_id !== user?.id && c.claimant_id !== user?.email;
@@ -249,13 +249,19 @@ function Dashboard() {
           {/* TAB 1: My Listings (Lost and Found posts) */}
           <TabsContent value="items" className="pt-6">
             {itemsLoading ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div
+                className="grid gap-[clamp(1rem,3vw,1.5rem)]"
+                style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(180px, 100%), 1fr))" }}
+              >
                 {Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton key={i} className="h-72 rounded-2xl" />
                 ))}
               </div>
-            ) : myItems?.length ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            ) : myItems && myItems.length > 0 ? (
+              <div
+                className="grid gap-[clamp(1rem,3vw,1.5rem)]"
+                style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(180px, 100%), 1fr))" }}
+              >
                 {myItems.map((item) => (
                   <div
                     key={item.id}
