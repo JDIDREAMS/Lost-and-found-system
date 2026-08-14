@@ -595,27 +595,29 @@ function ItemDetail() {
                         </div>
                       )}
 
-                      {item.item_type === "found" && item.contact_info ? (
-                        <Button
-                          className="gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white"
-                          asChild
-                        >
-                          <a
-                            href={`https://wa.me/${item.contact_info.replace(/\D/g, "")}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <MessageCircle className="size-4" />
-                            Chat on WhatsApp
-                          </a>
-                        </Button>
-                      ) : (
+                      <div className="flex flex-wrap items-center gap-2">
                         <Button variant="outline" asChild>
                           <Link to="/claims/$claimId" params={{ claimId: myClaim.id }}>
                             Open message thread
                           </Link>
                         </Button>
-                      )}
+
+                        {item.item_type === "found" && item.contact_info && (
+                          <Button
+                            className="gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white"
+                            asChild
+                          >
+                            <a
+                              href={`https://wa.me/${item.contact_info.replace(/\D/g, "")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <MessageCircle className="size-4" />
+                              Chat on WhatsApp
+                            </a>
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="mt-3 space-y-3">
