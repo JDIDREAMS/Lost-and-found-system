@@ -92,7 +92,9 @@
       "studentId": "21036275",
       "isStudentVerified": true,
       "role": "user",
-      "createdAt": "2026-08-13T14:37:38.638Z"
+      "createdAt": "2026-08-13T14:37:38.638Z",
+      "resetToken": "e1b285e3f916afd97804ccfd520e537452c31849923fec792067b2c876b0de76",
+      "resetTokenExpires": 1786693977258
     },
     {
       "id": "49fdd4c1-e127-4c53-b6fb-90562a98eb06",
@@ -328,19 +330,5 @@
   "notifications": [],
   "reports": [],
   "audit_logs": [],
-  "feedbacks": [],
-  "watchlists": [],
-  "preferences": [
-    {
-      "user_id": "a0d774d0-dae1-48e1-8820-39365f37408a",
-      "in_app": true,
-      "email": true,
-      "whatsapp": false,
-      "notify_on_claim": true,
-      "notify_on_message": true,
-      "notify_on_match": true,
-      "notify_on_handover": true,
-      "notify_on_watchlist": true
-    }
-  ]
+  "feedbacks": []
 }
