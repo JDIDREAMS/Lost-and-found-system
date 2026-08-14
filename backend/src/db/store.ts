@@ -30,6 +30,7 @@ export interface ItemRecord {
   image_url: string | null; // single URL or JSON array of URLs
   video_url?: string | null | undefined;
   sensitive_details?: string | null | undefined;
+  ocr_text?: string | null | undefined;
   status: "open" | "claimed" | "resolved" | "expired";
   contact_info: string | null;
   posted_by: string | null;
@@ -132,6 +133,33 @@ export interface FeedbackRecord {
   created_at: string;
 }
 
+export interface WatchlistRecord {
+  id: string;
+  user_id: string;
+  name: string;
+  keyword?: string | null | undefined;
+  category?: string | null | undefined;
+  campus_zone?: string | null | undefined;
+  item_type?: "lost" | "found" | null | undefined;
+  notify_email?: boolean | undefined;
+  notify_in_app?: boolean | undefined;
+  notify_whatsapp?: boolean | undefined;
+  created_at: string;
+}
+
+export interface NotificationPreferencesRecord {
+  user_id: string;
+  in_app: boolean;
+  email: boolean;
+  whatsapp: boolean;
+  phone_number?: string | null | undefined;
+  notify_on_claim: boolean;
+  notify_on_message: boolean;
+  notify_on_match: boolean;
+  notify_on_handover: boolean;
+  notify_on_watchlist: boolean;
+}
+
 interface DatabaseSchema {
   users: UserRecord[];
   items: ItemRecord[];
@@ -141,6 +169,8 @@ interface DatabaseSchema {
   reports: ReportRecord[];
   audit_logs: AuditLogRecord[];
   feedbacks: FeedbackRecord[];
+  watchlists?: WatchlistRecord[] | undefined;
+  preferences?: NotificationPreferencesRecord[] | undefined;
 }
 
 const DATA_DIR = path.join(__dirname, "../../data");
@@ -477,6 +507,63 @@ class Store {
     this.db.feedbacks.unshift(feedback);
     this.save();
     return feedback;
+  }
+
+  // Watchlists operations
+  public getWatchlists(userId?: string) {
+    if (!this.db.watchlists) this.db.watchlists = [];
+    if (userId) return this.db.watchlists.filter((w) => w.user_id === userId);
+    return this.db.watchlists;
+  }
+
+  public addWatchlist(watchlist: WatchlistRecord) {
+    if (!this.db.watchlists) this.db.watchlists = [];
+    this.db.watchlists.unshift(watchlist);
+    this.save();
+    return watchlist;
+  }
+
+  public deleteWatchlist(id: string, userId: string) {
+    if (!this.db.watchlists) return false;
+    const initialLen = this.db.watchlists.length;
+    this.db.watchlists = this.db.watchlists.filter((w) => !(w.id === id && w.user_id === userId));
+    if (this.db.watchlists.length !== initialLen) {
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  // Notification Preferences operations
+  public getPreferences(userId: string): NotificationPreferencesRecord {
+    if (!this.db.preferences) this.db.preferences = [];
+    const found = this.db.preferences.find((p) => p.user_id === userId);
+    if (found) return found;
+
+    const defaultPrefs: NotificationPreferencesRecord = {
+      user_id: userId,
+      in_app: true,
+      email: true,
+      whatsapp: false,
+      notify_on_claim: true,
+      notify_on_message: true,
+      notify_on_match: true,
+      notify_on_handover: true,
+      notify_on_watchlist: true,
+    };
+    this.db.preferences.push(defaultPrefs);
+    this.save();
+    return defaultPrefs;
+  }
+
+  public setPreferences(
+    userId: string,
+    updates: Partial<NotificationPreferencesRecord>,
+  ): NotificationPreferencesRecord {
+    const current = this.getPreferences(userId);
+    Object.assign(current, updates);
+    this.save();
+    return current;
   }
 }
 

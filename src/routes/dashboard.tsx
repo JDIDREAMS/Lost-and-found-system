@@ -11,11 +11,15 @@ import {
   Inbox,
   ShieldCheck,
   Rocket,
+  Bookmark,
+  Trash2,
+  BellRing,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { api, UserSmartMatches, ProofDetails } from "@/lib/api";
+import { api, UserSmartMatches, ProofDetails, Watchlist } from "@/lib/api";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
+import { NotificationPreferencesDialog } from "@/components/NotificationPreferencesDialog";
 import { ItemCard } from "@/components/ItemCard";
 import { ItemImage } from "@/components/ItemImage";
 import { Badge } from "@/components/ui/badge";
@@ -172,6 +176,31 @@ function Dashboard() {
     0,
   );
 
+  // 4. Saved Watchlists
+  const { data: watchlists, isLoading: watchlistsLoading } = useQuery({
+    queryKey: ["watchlists", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      try {
+        const res = await api.getWatchlists();
+        return res.watchlists;
+      } catch {
+        return [] as Watchlist[];
+      }
+    },
+  });
+
+  const deleteWatchlistMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return api.deleteWatchlist(id);
+    },
+    onSuccess: () => {
+      toast.success("Watchlist removed.");
+      void qc.invalidateQueries({ queryKey: ["watchlists"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className="min-h-screen">
       <SiteHeader />
@@ -181,9 +210,12 @@ function Dashboard() {
             <h1 className="font-display text-3xl font-semibold">Your dashboard</h1>
             <p className="mt-1 text-sm text-muted-foreground">{user?.email}</p>
           </div>
-          <Button asChild>
-            <Link to="/post">Report an item</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <NotificationPreferencesDialog />
+            <Button asChild>
+              <Link to="/post">Report an item</Link>
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="items" className="mt-8">
@@ -207,6 +239,10 @@ function Dashboard() {
                   {receivedClaims.length}
                 </span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="watchlists" className="relative gap-1.5">
+              <Bookmark className="size-3.5" />
+              Watchlists ({watchlists?.length ?? 0})
             </TabsTrigger>
           </TabsList>
 
@@ -516,6 +552,92 @@ function Dashboard() {
               <EmptyState
                 title="No received claims yet"
                 body="When other users claim items you found, their proof submissions will appear here for your review."
+              />
+            )}
+          </TabsContent>
+
+          {/* TAB 5: Saved Watchlists */}
+          <TabsContent value="watchlists" className="pt-6">
+            {watchlistsLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-28 rounded-2xl" />
+                <Skeleton className="h-28 rounded-2xl" />
+              </div>
+            ) : watchlists?.length ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {watchlists.map((w) => {
+                  const filterPills = [
+                    w.keyword ? `Keyword: "${w.keyword}"` : null,
+                    w.category ? `Category: ${w.category}` : null,
+                    w.campus_zone ? `Zone: ${w.campus_zone}` : null,
+                    w.item_type ? `Type: ${w.item_type}` : null,
+                  ].filter(Boolean);
+
+                  return (
+                    <div
+                      key={w.id}
+                      className="flex flex-col justify-between rounded-2xl border bg-card p-5 shadow-soft transition-all hover:border-primary/30"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <Bookmark className="size-4 text-primary" />
+                            <h3 className="font-semibold text-foreground text-base">{w.name}</h3>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteWatchlistMutation.mutate(w.id)}
+                            className="text-muted-foreground hover:text-destructive h-8 px-2"
+                            title="Delete watchlist"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
+
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {filterPills.length > 0 ? (
+                            filterPills.map((pill, idx) => (
+                              <Badge key={idx} variant="outline" className="text-[11px]">
+                                {pill}
+                              </Badge>
+                            ))
+                          ) : (
+                            <Badge variant="outline" className="text-[11px]">
+                              All Campus Listings
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between border-t pt-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          {w.notify_in_app && "🔔 In-App"}
+                          {w.notify_email && " • 📧 Email"}
+                          {w.notify_whatsapp && " • 💬 WhatsApp"}
+                        </span>
+                        <Button variant="link" size="sm" asChild className="h-auto p-0 text-xs">
+                          <Link
+                            to="/browse"
+                            search={{
+                              q: w.keyword || undefined,
+                              category: w.category || undefined,
+                              campus_zone: w.campus_zone || undefined,
+                              type: w.item_type || undefined,
+                            }}
+                          >
+                            Run Search →
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <EmptyState
+                title="No saved search watchlists"
+                body="Save your custom filters while browsing the board to get passive push alerts when items match your criteria."
               />
             )}
           </TabsContent>

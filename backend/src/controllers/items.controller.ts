@@ -2,6 +2,8 @@ import { Response } from "express";
 import { ItemsService } from "../services/items.service.js";
 import { ClaimsService } from "../services/claims.service.js";
 import { SmartMatcherService } from "../services/matcher.service.js";
+import { WatchlistService } from "../services/watchlist.service.js";
+import { OcrService } from "../services/ocr.service.js";
 import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 
 export class ItemsController {
@@ -90,6 +92,7 @@ export class ItemsController {
       image_url,
       video_url,
       sensitive_details,
+      ocr_text,
       contact_info,
     } = req.body;
 
@@ -105,6 +108,7 @@ export class ItemsController {
         image_url: image_url || null,
         video_url: video_url || null,
         sensitive_details: sensitive_details || null,
+        ocr_text: ocr_text || null,
         status: "open",
         contact_info: contact_info || null,
         posted_by: user.id,
@@ -115,6 +119,9 @@ export class ItemsController {
 
     // Asynchronously evaluate smart matches and trigger push notifications
     void SmartMatcherService.runAutomatedMatchAlerts(item);
+
+    // Asynchronously evaluate watchlists and dispatch alerts to subscribed searchers
+    void WatchlistService.evaluateNewItem(item);
 
     res.status(201).json({ item });
   }

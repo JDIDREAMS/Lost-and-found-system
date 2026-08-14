@@ -24,6 +24,7 @@ export interface Item {
   image_url: string | null;
   video_url?: string | null | undefined;
   sensitive_details?: string | null | undefined;
+  ocr_text?: string | null | undefined;
   has_sensitive_details?: boolean | undefined;
   sensitive_details_unlocked?: boolean | undefined;
   status: "open" | "claimed" | "resolved" | "expired";
@@ -34,6 +35,33 @@ export interface Item {
   updated_at: string;
   expires_at?: string | null | undefined;
   bumped_at?: string | null | undefined;
+}
+
+export interface Watchlist {
+  id: string;
+  user_id: string;
+  name: string;
+  keyword?: string | null | undefined;
+  category?: string | null | undefined;
+  campus_zone?: string | null | undefined;
+  item_type?: "lost" | "found" | null | undefined;
+  notify_email?: boolean | undefined;
+  notify_in_app?: boolean | undefined;
+  notify_whatsapp?: boolean | undefined;
+  created_at: string;
+}
+
+export interface NotificationPreferences {
+  user_id: string;
+  in_app: boolean;
+  email: boolean;
+  whatsapp: boolean;
+  phone_number?: string | null | undefined;
+  notify_on_claim: boolean;
+  notify_on_message: boolean;
+  notify_on_match: boolean;
+  notify_on_handover: boolean;
+  notify_on_watchlist: boolean;
 }
 
 export interface ProofDetails {
@@ -440,4 +468,37 @@ export const api = {
 
   getUserReputation: (userId: string) =>
     request<{ reputation: UserReputation }>(`/users/${userId}/reputation`),
+
+  // Watchlists / Saved Searches
+  getWatchlists: () => request<{ watchlists: Watchlist[] }>("/watchlists"),
+
+  createWatchlist: (data: {
+    name: string;
+    keyword?: string | null;
+    category?: string | null;
+    campus_zone?: string | null;
+    item_type?: "lost" | "found" | null;
+    notify_email?: boolean;
+    notify_in_app?: boolean;
+    notify_whatsapp?: boolean;
+  }) =>
+    request<{ watchlist: Watchlist }>("/watchlists", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  deleteWatchlist: (id: string) =>
+    request<{ message: string }>(`/watchlists/${id}`, {
+      method: "DELETE",
+    }),
+
+  // Notification Preferences
+  getNotificationPreferences: () =>
+    request<{ preferences: NotificationPreferences }>("/watchlists/preferences"),
+
+  updateNotificationPreferences: (data: Partial<NotificationPreferences>) =>
+    request<{ preferences: NotificationPreferences }>("/watchlists/preferences", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
 };

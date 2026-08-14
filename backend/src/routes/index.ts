@@ -7,6 +7,7 @@ import notificationsRoutes from "./notifications.routes.js";
 import uploadRoutes from "./upload.routes.js";
 import adminRoutes from "./admin.routes.js";
 import reportsRoutes from "./reports.routes.js";
+import watchlistRoutes from "./watchlist.routes.js";
 import { authLimiter } from "../middleware/rate-limiter.js";
 
 const apiRouter = Router();
@@ -18,6 +19,7 @@ apiRouter.use("/auth", authLimiter, authRoutes);
 apiRouter.use("/items", itemsRoutes);
 apiRouter.use("/admin", adminRoutes);
 apiRouter.use("/notifications", notificationsRoutes);
+apiRouter.use("/watchlists", watchlistRoutes);
 apiRouter.use("/upload", uploadRoutes);
 apiRouter.use("/", claimsRoutes);
 apiRouter.use("/", messagesRoutes);

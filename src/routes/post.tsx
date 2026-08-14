@@ -11,6 +11,10 @@ import {
   Image as ImageIcon,
   Lock,
   Sparkles,
+  ScanText,
+  WifiOff,
+  Save,
+  CheckCircle2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +32,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CATEGORIES, CAMPUS_ZONES } from "@/lib/lostfound";
+import { performOcrScanOnFile, type OcrExtractionResult } from "@/lib/ocr";
+import { OfflineDraftsService, type OfflineDraft } from "@/lib/offline-drafts";
 
 export const Route = createFileRoute("/post")({
   head: () => ({
@@ -65,12 +71,15 @@ function Post() {
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<Array<{ url: string; isVideo: boolean }>>([]);
   const [busy, setBusy] = useState(false);
+  const [ocrResult, setOcrResult] = useState<OcrExtractionResult | null>(null);
+  const [offlineDrafts, setOfflineDrafts] = useState<OfflineDraft[]>([]);
 
   useEffect(() => {
     if (!loading && !user) void navigate({ to: "/auth" });
+    setOfflineDrafts(OfflineDraftsService.getDrafts());
   }, [loading, user, navigate]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
     const selectedFiles = Array.from(e.target.files);
 
@@ -81,6 +90,16 @@ function Post() {
 
     setFiles((prev) => [...prev, ...selectedFiles]);
     setPreviews((prev) => [...prev, ...newMedia]);
+
+    // Run OCR scanner on first image file
+    const imageFile = selectedFiles.find((f) => !f.type.startsWith("video/"));
+    if (imageFile) {
+      const extracted = await performOcrScanOnFile(imageFile);
+      if (extracted && (extracted.studentId || extracted.serialNumber || extracted.brand)) {
+        setOcrResult(extracted);
+        toast.info("🔍 OCR detected text from photo! See suggestions below.");
+      }
+    }
   };
 
   const removeFile = (index: number) => {
@@ -92,9 +111,70 @@ function Post() {
     });
   };
 
+  const autofillOcr = (field: "all" | "sensitive") => {
+    if (!ocrResult) return;
+
+    if (field === "all") {
+      if (ocrResult.suggestedTitle && !title) setTitle(ocrResult.suggestedTitle);
+      if (ocrResult.suggestedDescription && !description)
+        setDescription(ocrResult.suggestedDescription);
+      if (ocrResult.studentId) setCategory("Student ID & Cards");
+      else if (ocrResult.brand) setCategory("Electronics");
+    }
+
+    if (field === "sensitive" || ocrResult.sensitiveDetailFragment) {
+      const fragment = ocrResult.sensitiveDetailFragment || ocrResult.rawText;
+      setSensitiveDetails((prev) => (prev ? `${prev}\n${fragment}` : fragment));
+    }
+
+    toast.success("Details autofilled from photo text!");
+  };
+
+  const saveOfflineDraft = () => {
+    OfflineDraftsService.saveDraft({
+      type,
+      title: title || "Untitled Draft",
+      category,
+      campusZone,
+      location,
+      date,
+      description,
+      sensitiveDetails,
+      contact,
+    });
+    setOfflineDrafts(OfflineDraftsService.getDrafts());
+    toast.success("Draft saved locally! You can restore or publish it anytime.");
+  };
+
+  const restoreDraft = (draft: OfflineDraft) => {
+    setType(draft.type);
+    setTitle(draft.title);
+    setCategory(draft.category);
+    setCampusZone(draft.campusZone || "library");
+    setLocation(draft.location);
+    setDate(draft.date);
+    setDescription(draft.description);
+    setSensitiveDetails(draft.sensitiveDetails || "");
+    setContact(draft.contact);
+    toast.success("Draft restored!");
+  };
+
+  const deleteDraft = (id: string) => {
+    OfflineDraftsService.removeDraft(id);
+    setOfflineDrafts(OfflineDraftsService.getDrafts());
+    toast.success("Draft removed.");
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    // Check if offline
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      saveOfflineDraft();
+      return;
+    }
+
     setBusy(true);
 
     try {
@@ -128,6 +208,7 @@ function Post() {
           contact_info: contact.trim() || null,
           image_url: imagePayload,
           video_url: videoUrl,
+          ocr_text: ocrResult?.rawText || null,
         });
 
         toast.success("Your report is live.");
@@ -173,7 +254,9 @@ function Post() {
           image_url: imagePayload,
           posted_by: user.id,
           poster_name:
-            user.user_metadata?.["display_name"] || user.email?.split("@")[0] || "Member",
+            (user.user_metadata?.["display_name"] as string | undefined) ||
+            user.email?.split("@")[0] ||
+            "Member",
         })
         .select()
         .single();
@@ -186,8 +269,10 @@ function Post() {
       void qc.invalidateQueries({ queryKey: ["my-smart-matches"] });
       void navigate({ to: "/items/$id", params: { id: data.id } });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to create post.";
-      toast.error(message);
+      // Offline fallback: save draft locally
+      saveOfflineDraft();
+      const message = err instanceof Error ? err.message : "Saved as local draft.";
+      toast.info(message);
     } finally {
       setBusy(false);
     }
@@ -197,10 +282,72 @@ function Post() {
     <div className="min-h-screen">
       <SiteHeader />
       <main className="mx-auto max-w-2xl px-4 py-10">
-        <h1 className="font-display text-3xl font-semibold">Post an item</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Report something you lost, or help return something you found.
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h1 className="font-display text-3xl font-semibold">Post an item</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Report something you lost, or help return something you found.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={saveOfflineDraft}
+            className="flex items-center gap-1.5 text-xs"
+          >
+            <Save className="size-3.5" /> Save Draft
+          </Button>
+        </div>
+
+        {/* Offline Drafts Recovery Bar */}
+        {offlineDrafts.length > 0 && (
+          <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 font-bold text-amber-800 dark:text-amber-300">
+                <WifiOff className="size-4 text-amber-600" />
+                <span>Offline Drafts Saved ({offlineDrafts.length})</span>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              {offlineDrafts.map((d) => (
+                <div
+                  key={d.id}
+                  className="flex items-center justify-between rounded-lg bg-background/80 p-2.5 border"
+                >
+                  <div>
+                    <span className="font-semibold text-foreground">
+                      [{d.type.toUpperCase()}] {d.title}
+                    </span>
+                    <span className="text-muted-foreground ml-2">
+                      ({new Date(d.savedAt).toLocaleDateString()})
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => restoreDraft(d)}
+                      className="h-7 text-xs text-primary"
+                    >
+                      Restore
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteDraft(d.id)}
+                      className="h-7 text-xs text-destructive"
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <form onSubmit={submit} className="mt-8 space-y-6">
           {/* Post Type Selector */}
@@ -228,6 +375,54 @@ function Post() {
               I found something
             </button>
           </div>
+
+          {/* OCR Detection Banner */}
+          {ocrResult && (
+            <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-4 space-y-2.5 text-xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 font-bold text-indigo-800 dark:text-indigo-300">
+                  <ScanText className="size-4 text-indigo-600" />
+                  <span>OCR Auto-Extracted Text from Photo</span>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setOcrResult(null)}
+                  className="h-6 w-6 p-0 text-muted-foreground"
+                >
+                  <X className="size-3.5" />
+                </Button>
+              </div>
+
+              <div className="rounded-xl border border-indigo-500/20 bg-background/80 p-2.5 font-mono text-xs">
+                {ocrResult.rawText}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => autofillOcr("all")}
+                  className="h-7 text-xs border-indigo-500/30 text-indigo-700 dark:text-indigo-300"
+                >
+                  <CheckCircle2 className="size-3 mr-1" /> Autofill Title &amp; Category
+                </Button>
+                {ocrResult.sensitiveDetailFragment && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => autofillOcr("sensitive")}
+                    className="h-7 text-xs border-indigo-500/30 text-indigo-700 dark:text-indigo-300"
+                  >
+                    <Lock className="size-3 mr-1" /> Autofill Secret Evidence
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label htmlFor="title">Item name</Label>
@@ -385,7 +580,7 @@ function Post() {
             )}
           </div>
 
-          {/* Rich Media Evidence Uploader (Photos + Video) */}
+          {/* Rich Media Evidence Uploader (Photos & Video) */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">

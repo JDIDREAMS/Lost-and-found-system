@@ -115,6 +115,7 @@ export class ItemsService {
           image_url: item.image_url,
           video_url: item.video_url,
           sensitive_details: item.sensitive_details,
+          ocr_text: item.ocr_text,
           status: item.status || "open",
           contact_info: item.contact_info,
           posted_by: item.posted_by,
@@ -129,6 +130,7 @@ export class ItemsService {
           campus_zone: item.campus_zone || null,
           video_url: item.video_url || null,
           sensitive_details: item.sensitive_details || null,
+          ocr_text: item.ocr_text || null,
           expires_at: expiresAt,
         };
       }

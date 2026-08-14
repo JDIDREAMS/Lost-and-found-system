@@ -28,6 +28,7 @@ export const createItemSchema = z.object({
   image_url: z.string().optional().nullable(),
   video_url: z.string().optional().nullable(),
   sensitive_details: z.string().max(1000).optional().nullable(),
+  ocr_text: z.string().max(2000).optional().nullable(),
 });
 
 export const updateItemSchema = createItemSchema.partial().extend({

@@ -5,6 +5,7 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
 import { ItemCard } from "@/components/ItemCard";
+import { WatchlistDialog } from "@/components/WatchlistDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -120,12 +121,22 @@ function Browse() {
               <span className="inline-flex items-center gap-2 text-sm font-semibold">
                 <SlidersHorizontal className="size-4" /> Filters
               </span>
-              <button
-                onClick={reset}
-                className="text-xs text-muted-foreground underline-offset-2 hover:underline"
-              >
-                Reset
-              </button>
+              <div className="flex items-center gap-2">
+                <WatchlistDialog
+                  currentFilters={{
+                    keyword: keyword || undefined,
+                    category: category !== ANY ? category : undefined,
+                    campusZone: campusZone !== "all" ? campusZone : undefined,
+                    type: type !== ANY ? type : undefined,
+                  }}
+                />
+                <button
+                  onClick={reset}
+                  className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+                >
+                  Reset
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4">
