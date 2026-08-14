@@ -6,13 +6,13 @@ Welcome to the complete documentation for the Lost & Found System project. This 
 
 ### Quick Links
 
-| Document | Purpose | Audience |
-|----------|---------|----------|
-| [DOCUMENTATION.md](DOCUMENTATION.md) | Complete project overview & features | Everyone |
-| [SETUP_GUIDE.md](docs/SETUP_GUIDE.md) | Installation & configuration | New developers |
-| [API_REFERENCE.md](docs/API_REFERENCE.md) | All API endpoints & usage | Backend developers |
-| [COMPONENTS_GUIDE.md](docs/COMPONENTS_GUIDE.md) | React components reference | Frontend developers |
-| [DATABASE_DEPLOYMENT.md](docs/DATABASE_DEPLOYMENT.md) | Database schema & deployment | DevOps / Backend |
+| Document                                              | Purpose                              | Audience            |
+| ----------------------------------------------------- | ------------------------------------ | ------------------- |
+| [DOCUMENTATION.md](DOCUMENTATION.md)                  | Complete project overview & features | Everyone            |
+| [SETUP_GUIDE.md](docs/SETUP_GUIDE.md)                 | Installation & configuration         | New developers      |
+| [API_REFERENCE.md](docs/API_REFERENCE.md)             | All API endpoints & usage            | Backend developers  |
+| [COMPONENTS_GUIDE.md](docs/COMPONENTS_GUIDE.md)       | React components reference           | Frontend developers |
+| [DATABASE_DEPLOYMENT.md](docs/DATABASE_DEPLOYMENT.md) | Database schema & deployment         | DevOps / Backend    |
 
 ---
 
@@ -268,18 +268,18 @@ Welcome to the complete documentation for the Lost & Found System project. This 
 
 ### Quick Feature Reference
 
-| Feature | Related Docs | API Endpoint |
-|---------|-------------|-------------|
-| Post Lost/Found Items | [DOCUMENTATION.md#1-item-management](DOCUMENTATION.md#1-item-management) | `POST /items` |
-| Smart Matching | [DOCUMENTATION.md#2-smart-matching-algorithm](DOCUMENTATION.md#2-smart-matching-algorithm) | `GET /items/:id` |
-| Claims System | [DOCUMENTATION.md#3-claims-system](DOCUMENTATION.md#3-claims-system) | `POST /claims` |
-| Messaging | [DOCUMENTATION.md#4-messaging-system](DOCUMENTATION.md#4-messaging-system) | `POST /messages` |
-| Watchlist | [DOCUMENTATION.md#5-watchlist](DOCUMENTATION.md#5-watchlist) | `POST /watchlist` |
-| Notifications | [DOCUMENTATION.md#6-notifications](DOCUMENTATION.md#6-notifications) | `GET /notifications` |
-| Admin Panel | [DOCUMENTATION.md#7-admin-dashboard](DOCUMENTATION.md#7-admin-dashboard) | `GET /admin/users` |
-| Trust System | [DOCUMENTATION.md#8-trust-system](DOCUMENTATION.md#8-trust-system) | N/A |
-| Reports | [DOCUMENTATION.md#9-reporting-system](DOCUMENTATION.md#9-reporting-system) | `POST /reports` |
-| Handovers | [DOCUMENTATION.md#10-handover-scheduling](DOCUMENTATION.md#10-handover-scheduling) | N/A |
+| Feature               | Related Docs                                                                               | API Endpoint         |
+| --------------------- | ------------------------------------------------------------------------------------------ | -------------------- |
+| Post Lost/Found Items | [DOCUMENTATION.md#1-item-management](DOCUMENTATION.md#1-item-management)                   | `POST /items`        |
+| Smart Matching        | [DOCUMENTATION.md#2-smart-matching-algorithm](DOCUMENTATION.md#2-smart-matching-algorithm) | `GET /items/:id`     |
+| Claims System         | [DOCUMENTATION.md#3-claims-system](DOCUMENTATION.md#3-claims-system)                       | `POST /claims`       |
+| Messaging             | [DOCUMENTATION.md#4-messaging-system](DOCUMENTATION.md#4-messaging-system)                 | `POST /messages`     |
+| Watchlist             | [DOCUMENTATION.md#5-watchlist](DOCUMENTATION.md#5-watchlist)                               | `POST /watchlist`    |
+| Notifications         | [DOCUMENTATION.md#6-notifications](DOCUMENTATION.md#6-notifications)                       | `GET /notifications` |
+| Admin Panel           | [DOCUMENTATION.md#7-admin-dashboard](DOCUMENTATION.md#7-admin-dashboard)                   | `GET /admin/users`   |
+| Trust System          | [DOCUMENTATION.md#8-trust-system](DOCUMENTATION.md#8-trust-system)                         | N/A                  |
+| Reports               | [DOCUMENTATION.md#9-reporting-system](DOCUMENTATION.md#9-reporting-system)                 | `POST /reports`      |
+| Handovers             | [DOCUMENTATION.md#10-handover-scheduling](DOCUMENTATION.md#10-handover-scheduling)         | N/A                  |
 
 ---
 
