@@ -23,13 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 export function SiteHeader() {
   const { user, displayName, isAdmin, signOut } = useAuth();
@@ -137,7 +131,10 @@ export function SiteHeader() {
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[80vw] max-w-xs p-6 flex flex-col justify-between">
+            <SheetContent
+              side="right"
+              className="w-[80vw] max-w-xs p-6 flex flex-col justify-between"
+            >
               <div className="space-y-6">
                 <SheetHeader className="text-left pb-4 border-b">
                   <SheetTitle className="flex items-center gap-2 font-display text-lg font-bold">
