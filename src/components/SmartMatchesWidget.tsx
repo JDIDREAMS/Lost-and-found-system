@@ -129,7 +129,7 @@ export function SmartMatchesWidget({ itemId, itemType, title }: SmartMatchesWidg
 
                       {match.reasons && match.reasons.length > 0 && (
                         <div className="mt-2.5 flex flex-wrap gap-1.5">
-                          {match.reasons.map((reason, idx) => (
+                          {match.reasons.map((reason: string, idx: number) => (
                             <span
                               key={idx}
                               className="inline-flex items-center gap-1 rounded-md bg-muted/60 px-2 py-0.5 text-[10px] font-medium text-foreground/80"
