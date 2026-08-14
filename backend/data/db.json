@@ -359,11 +359,57 @@
         "serial_fragment": "mhvhJS"
       },
       "status": "pending",
-      "created_at": "2026-08-14T07:07:50.698Z"
+      "created_at": "2026-08-14T07:07:50.698Z",
+      "handover": {
+        "poster_confirmed": false,
+        "claimant_confirmed": true,
+        "claimant_confirmed_at": "2026-08-14T07:10:37.511Z"
+      }
     }
   ],
-  "messages": [],
+  "messages": [
+    {
+      "id": "c7ad01d6-c4c4-441e-b4f4-8581c2672789",
+      "claim_id": "84b9c95c-5d41-40c9-b956-0bbdc9ea1277",
+      "sender_id": "2c9646eb-a84e-45ac-a013-bce6776fda8c",
+      "text": "hjlghfhjfjlh",
+      "is_read": false,
+      "created_at": "2026-08-14T07:11:07.106Z"
+    },
+    {
+      "id": "19a325a9-351f-4e0b-b9f3-f06794cc42e1",
+      "claim_id": "84b9c95c-5d41-40c9-b956-0bbdc9ea1277",
+      "sender_id": "2c9646eb-a84e-45ac-a013-bce6776fda8c",
+      "text": "ghgxhgxhsla",
+      "is_read": false,
+      "created_at": "2026-08-14T07:11:25.331Z"
+    }
+  ],
   "notifications": [
+    {
+      "id": "ba12fd02-13b1-4b6d-8253-39acf49334c9",
+      "user_id": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "text": "kaykuffour: ghgxhgxhsla",
+      "link": "/claims/84b9c95c-5d41-40c9-b956-0bbdc9ea1277",
+      "is_read": false,
+      "created_at": "2026-08-14T07:11:26.075644+00:00"
+    },
+    {
+      "id": "63b4449e-b6ce-42f7-b6f2-aad850e2cde2",
+      "user_id": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "text": "kaykuffour: hjlghfhjfjlh",
+      "link": "/claims/84b9c95c-5d41-40c9-b956-0bbdc9ea1277",
+      "is_read": false,
+      "created_at": "2026-08-14T07:11:07.848911+00:00"
+    },
+    {
+      "id": "b3ea0f6b-51b5-4a0e-bd7c-9206226cd370",
+      "user_id": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "text": "🤝 Handover Update: kaykuffour has confirmed the handover. Please confirm on your end to complete!",
+      "link": "/claims/84b9c95c-5d41-40c9-b956-0bbdc9ea1277",
+      "is_read": false,
+      "created_at": "2026-08-14T07:10:38.255263+00:00"
+    },
     {
       "id": "707f8621-8a25-4101-83da-646ebdd64bbb",
       "user_id": "a0d774d0-dae1-48e1-8820-39365f37408a",
