@@ -62,7 +62,14 @@ export class ItemsService {
       items = items.filter((i) => i.category === filters.category);
     }
     if (filters?.campus_zone && filters.campus_zone !== "all" && filters.campus_zone !== "any") {
-      items = items.filter((i) => i.campus_zone === filters.campus_zone);
+      const target = filters.campus_zone.toLowerCase();
+      items = items.filter((i) => {
+        const iz = (i.campus_zone || "").toLowerCase();
+        if (iz === target) return true;
+        if (target === "student_union" && iz === "union") return true;
+        if (target === "union" && iz === "student_union") return true;
+        return false;
+      });
     }
     if (filters?.status && filters.status !== "any" && filters.status !== "all") {
       items = items.filter((i) => i.status === filters.status);

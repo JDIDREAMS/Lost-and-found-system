@@ -247,11 +247,14 @@ function Post() {
           title: title.trim(),
           description: description.trim(),
           category,
+          campus_zone: campusZone,
           item_type: type,
           location: location.trim(),
           date_occurred: date,
           contact_info: contact.trim() || null,
           image_url: imagePayload,
+          video_url: videoUrl,
+          sensitive_details: sensitiveDetails.trim() || null,
           posted_by: user.id,
           poster_name:
             (user.user_metadata?.["display_name"] as string | undefined) ||

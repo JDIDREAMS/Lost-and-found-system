@@ -15,6 +15,7 @@ import {
   Layers,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
 import { ItemCard } from "@/components/ItemCard";
 import { WatchlistDialog } from "@/components/WatchlistDialog";
@@ -30,8 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { api } from "@/lib/api";
-import { CATEGORIES, CAMPUS_ZONES, type ItemRow } from "@/lib/lostfound";
+import { CATEGORIES, CAMPUS_ZONES, isItemInCampusZone, type ItemRow } from "@/lib/lostfound";
 
 export const Route = createFileRoute("/browse")({
   head: () => ({
@@ -105,7 +105,8 @@ function Browse() {
 
       if (type !== ANY && item.item_type !== type) return false;
       if (category !== ANY && item.category !== category) return false;
-      if (campusZone !== "all" && item.campus_zone !== campusZone) return false;
+      if (campusZone !== "all" && !isItemInCampusZone(item.campus_zone, campusZone, item.location))
+        return false;
       if (status !== ANY && item.status !== status) return false;
       if (loc && !(item.location || "").toLowerCase().includes(loc)) return false;
       if (from && (item.date_occurred || "") < from) return false;
@@ -314,7 +315,6 @@ function Browse() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Zones</SelectItem>
                     {CAMPUS_ZONES.map((z) => (
                       <SelectItem key={z.id} value={z.id}>
                         {z.icon} {z.label}
@@ -385,33 +385,22 @@ function Browse() {
           <section className="space-y-6 min-w-0">
             {/* Campus Geo-Zone Quick Pills (Horizontal Scroll) */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar">
-              <button
-                type="button"
-                onClick={() => setCampusZone("all")}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
-                  campusZone === "all"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
-              >
-                <span>🌍</span>
-                <span>All Zones</span>
-              </button>
               {CAMPUS_ZONES.map((z) => {
                 const isActive = campusZone === z.id;
+                const shortLabel = z.id === "all" ? "All Zones" : (z.label.split("&")[0]?.trim() || z.label);
                 return (
                   <button
                     key={z.id}
                     type="button"
                     onClick={() => setCampusZone(z.id)}
-                    className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
+                    className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition cursor-pointer ${
                       isActive
                         ? "bg-primary text-primary-foreground shadow-sm"
                         : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
                   >
                     <span>{z.icon}</span>
-                    <span>{z.label}</span>
+                    <span>{shortLabel}</span>
                   </button>
                 );
               })}
