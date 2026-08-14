@@ -72,7 +72,7 @@ function Index() {
               <span className="rule-label inline-flex items-center gap-2 text-muted-foreground">
                 <HandHeart className="size-3.5" /> Students · Staff · Faculty
               </span>
-              <h1 className="mt-6 text-4xl leading-[0.95] font-bold sm:text-5xl lg:text-6xl">
+              <h1 className="mt-6 text-4xl leading-[0.95] font-bold sm:text-5xl md:text-6xl lg:text-7xl">
                 Lost it on campus?
                 <br />
                 Someone probably
@@ -119,7 +119,9 @@ function Index() {
                   key={s.label}
                   className="rounded-lg border border-foreground/15 bg-card px-3 py-4"
                 >
-                  <div className="font-display text-3xl leading-none font-bold">{s.value}</div>
+                  <div className="font-display text-xl sm:text-3xl leading-none font-bold">
+                    {s.value}
+                  </div>
                   <div className="rule-label mt-2 text-muted-foreground">{s.label}</div>
                 </div>
               ))}
@@ -154,7 +156,7 @@ function Index() {
           ].map((f) => (
             <div
               key={f.title}
-              className={`rounded-lg border border-foreground/15 p-6 ${f.span} ${f.tone}`}
+              className={`rounded-lg border border-foreground/15 p-4 sm:p-6 ${f.span} ${f.tone}`}
             >
               <f.icon className="size-5" />
               <h2 className="mt-4 text-xl font-bold">{f.title}</h2>
@@ -164,12 +166,12 @@ function Index() {
         </section>
 
         <section className="border-t border-foreground/15 py-12">
-          <div className="mb-6 flex items-end justify-between gap-4">
-            <div>
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="min-w-0 flex-1">
               <span className="rule-label text-muted-foreground">The board</span>
-              <h2 className="mt-2 text-3xl font-bold">Recently posted</h2>
+              <h2 className="mt-2 text-2xl sm:text-3xl font-bold truncate">Recently posted</h2>
             </div>
-            <Button variant="ghost" asChild>
+            <Button variant="ghost" asChild className="shrink-0 self-start sm:self-auto">
               <Link to="/browse">
                 See all <ArrowRight className="size-4" />
               </Link>

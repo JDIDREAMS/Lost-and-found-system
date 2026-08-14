@@ -74,7 +74,7 @@ function ItemGallery({
                 setSelectedMedia("image");
                 setSelectedIdx(idx);
               }}
-              className={`relative aspect-square w-16 overflow-hidden rounded-xl border transition ${
+              className={`relative aspect-square w-14 sm:w-16 overflow-hidden rounded-xl border transition ${
                 selectedMedia === "image" && selectedIdx === idx
                   ? "ring-2 ring-primary border-primary"
                   : "opacity-70 hover:opacity-100"
@@ -93,7 +93,7 @@ function ItemGallery({
             <button
               type="button"
               onClick={() => setSelectedMedia("video")}
-              className={`relative aspect-square w-16 overflow-hidden rounded-xl border bg-black flex flex-col items-center justify-center text-white transition ${
+              className={`relative aspect-square w-14 sm:w-16 overflow-hidden rounded-xl border bg-black flex flex-col items-center justify-center text-white transition ${
                 selectedMedia === "video"
                   ? "ring-2 ring-primary border-primary"
                   : "opacity-70 hover:opacity-100"
@@ -332,8 +332,8 @@ function ItemDetail() {
                   <ReportDialog targetType="item" targetId={item.id} targetTitle={item.title} />
                 )}
               </div>
-              <h1 className="mt-4 text-3xl font-semibold">{item.title}</h1>
-              <p className="mt-3 whitespace-pre-line text-muted-foreground">{item.description}</p>
+              <h1 className="mt-4 text-2xl sm:text-3xl font-semibold break-words">{item.title}</h1>
+              <p className="mt-3 whitespace-pre-line text-muted-foreground break-words">{item.description}</p>
 
               <dl className="mt-6 space-y-2.5 text-sm">
                 <div className="flex items-center gap-2">
@@ -359,7 +359,7 @@ function ItemDetail() {
               {/* Sensitive Verification Detail Card (Protected vs Unlocked) */}
               {item.sensitive_details ? (
                 <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 font-bold text-emerald-800 dark:text-emerald-300">
                       <LockOpen className="size-4 text-emerald-600" />
                       <span>Sensitive Verification Evidence (Unlocked)</span>
@@ -401,12 +401,12 @@ function ItemDetail() {
               {isOwner ? (
                 <div className="mt-8 rounded-2xl border bg-card p-5 shadow-soft">
                   <h2 className="text-lg font-semibold">Manage this post</h2>
-                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <div className="mt-3 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
                     <Select
                       value={item.status}
                       onValueChange={(v) => setStatus.mutate(v as ItemStatus)}
                     >
-                      <SelectTrigger className="w-52">
+                      <SelectTrigger className="w-full sm:w-52">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>

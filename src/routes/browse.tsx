@@ -128,7 +128,9 @@ function Browse() {
       <main className="fluid-container py-8 md:py-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl sm:text-4xl font-semibold">Browse the board</h1>
+            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-semibold">
+              Browse the board
+            </h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
               {isLoading
                 ? "Loading items…"
@@ -167,7 +169,7 @@ function Browse() {
           </div>
         </div>
 
-        <div className="mt-6 md:mt-8 grid gap-6 lg:grid-cols-[250px_1fr]">
+        <div className="mt-6 md:mt-8 grid gap-6 lg:grid-cols-[220px_1fr] xl:grid-cols-[250px_1fr]">
           <aside
             className={`h-fit rounded-2xl border bg-card p-5 shadow-soft lg:sticky lg:top-24 ${
               mobileFiltersOpen ? "block animate-in fade-in duration-200" : "hidden lg:block"
@@ -302,7 +304,7 @@ function Browse() {
 
           <section className="space-y-6">
             {/* Campus Geo-Zone Quick Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar">
               {CAMPUS_ZONES.map((z) => {
                 const isActive = campusZone === z.id;
                 return (
@@ -335,7 +337,7 @@ function Browse() {
                 ))}
               </div>
             ) : results.length === 0 ? (
-              <div className="rounded-2xl border border-dashed p-12 text-center">
+              <div className="rounded-2xl border border-dashed p-6 sm:p-12 text-center">
                 <h2 className="text-xl font-semibold">No matches</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Try widening your filters or clearing the keyword.

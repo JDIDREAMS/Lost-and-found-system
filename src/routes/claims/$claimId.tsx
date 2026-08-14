@@ -180,10 +180,11 @@ export function ClaimThread() {
           filter: `claim_id=eq.${claimId}`,
         },
         (payload) => {
-          qc.setQueryData<MessageRow[]>(["claim-messages", claimId], (prev = []) => {
+          qc.setQueryData<MessageRow[]>(["claim-messages", claimId], (prev: MessageRow[] | undefined) => {
+            const current = prev ?? [];
             const row = payload.new as MessageRow;
-            if (prev.some((m) => m.id === row.id)) return prev;
-            return [...prev, row];
+            if (current.some((m) => m.id === row.id)) return current;
+            return [...current, row];
           });
         },
       )
@@ -254,7 +255,7 @@ export function ClaimThread() {
           </div>
         ) : (
           <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b p-5">
               <div>
                 <h1 className="font-display text-xl font-semibold">
                   {claim.items?.title ?? "Claim"}
@@ -323,7 +324,7 @@ export function ClaimThread() {
                 <Badge variant="found">Closed &amp; Returned</Badge>
               </div>
             ) : claim.meetup?.status === "accepted" ? (
-              <div className="flex flex-wrap items-center justify-between gap-2 bg-primary/10 border-b border-primary/20 px-5 py-3 text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-primary/10 border-b border-primary/20 px-5 py-3 text-xs">
                 <div className="flex items-center gap-2 font-medium text-foreground">
                   <MapPin className="size-4 text-primary" />
                   <span>
@@ -361,7 +362,7 @@ export function ClaimThread() {
 
                     <div className="grid gap-2 sm:grid-cols-2">
                       {proof.brand && (
-                        <div className="flex items-center justify-between rounded-lg bg-muted/40 p-2 border">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg bg-muted/40 p-2 border">
                           <div>
                             <span className="font-semibold text-muted-foreground">Brand: </span>
                             <span className="text-foreground">{proof.brand}</span>
@@ -383,7 +384,7 @@ export function ClaimThread() {
                       )}
 
                       {proof.serial_fragment && (
-                        <div className="flex items-center justify-between rounded-lg bg-muted/40 p-2 border">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg bg-muted/40 p-2 border">
                           <div>
                             <span className="font-semibold text-muted-foreground">
                               Serial Hint:{" "}
@@ -407,7 +408,7 @@ export function ClaimThread() {
                       )}
 
                       {proof.unique_marks && (
-                        <div className="sm:col-span-2 flex items-center justify-between rounded-lg bg-muted/40 p-2 border">
+                        <div className="sm:col-span-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg bg-muted/40 p-2 border">
                           <div>
                             <span className="font-semibold text-muted-foreground">
                               Unique Marks:{" "}
@@ -431,7 +432,7 @@ export function ClaimThread() {
                       )}
 
                       {proof.contents_description && (
-                        <div className="sm:col-span-2 flex items-center justify-between rounded-lg bg-muted/40 p-2 border">
+                        <div className="sm:col-span-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg bg-muted/40 p-2 border">
                           <div>
                             <span className="font-semibold text-muted-foreground">
                               Contents Inside:{" "}
@@ -541,8 +542,8 @@ export function ClaimThread() {
                     <div
                       className={
                         mine
-                          ? "max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-4 py-2 text-sm text-primary-foreground"
-                          : "max-w-[80%] rounded-2xl rounded-bl-sm bg-muted px-4 py-2 text-sm"
+                          ? "max-w-[85%] sm:max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-4 py-2 text-sm text-primary-foreground"
+                          : "max-w-[85%] sm:max-w-[80%] rounded-2xl rounded-bl-sm bg-muted px-4 py-2 text-sm"
                       }
                     >
                       <p className="whitespace-pre-line">{m.text}</p>
@@ -602,6 +603,7 @@ export function ClaimThread() {
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                     placeholder="Write a message or click a prompt above…"
+                    className="min-w-0 flex-1"
                   />
                   <Button type="submit" size="icon" disabled={!draft.trim()}>
                     <Send className="size-4" />

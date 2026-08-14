@@ -182,7 +182,7 @@ function Admin() {
     setAdminNotes("");
   };
 
-  const handleExecuteResolution = async (e: React.FormEvent) => {
+  const handleExecuteResolution = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedReport) return;
 
@@ -214,7 +214,10 @@ function Admin() {
     { label: "Active Escalations", value: openReportsCount, alert: openReportsCount > 0 },
     { label: "Total Listings", value: items?.length ?? 0 },
     { label: "Total Claims", value: claimCount ?? 0 },
-    { label: "Resolved Items", value: items?.filter((i) => i.status === "resolved").length ?? 0 },
+    {
+      label: "Resolved Items",
+      value: items?.filter((i: ItemRow) => i.status === "resolved").length ?? 0,
+    },
   ];
 
   return (
@@ -225,7 +228,7 @@ function Admin() {
           <div>
             <div className="flex items-center gap-2">
               <ShieldAlert className="size-6 text-primary" />
-              <h1 className="font-display text-3xl font-semibold">
+              <h1 className="font-display text-2xl sm:text-3xl font-semibold">
                 Moderation &amp; Escalation Center
               </h1>
             </div>
@@ -254,7 +257,7 @@ function Admin() {
               }`}
             >
               <p className="text-sm font-medium opacity-80">{s.label}</p>
-              <p className="mt-1 font-display text-3xl font-semibold">{s.value}</p>
+              <p className="mt-1 font-display text-2xl sm:text-3xl font-semibold">{s.value}</p>
             </div>
           ))}
         </div>
@@ -300,137 +303,139 @@ function Admin() {
                     </p>
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Target</TableHead>
-                        <TableHead>Reason &amp; Details</TableHead>
-                        <TableHead>Reporter</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Reported At</TableHead>
-                        <TableHead className="text-right">Quick Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {(reports ?? []).map((report) => {
-                        const reasonInfo = REASON_LABELS[report.reason] || {
-                          label: report.reason,
-                          variant: "outline",
-                        };
+                  <div className="overflow-x-auto w-full">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Target</TableHead>
+                          <TableHead>Reason &amp; Details</TableHead>
+                          <TableHead>Reporter</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Reported At</TableHead>
+                          <TableHead className="text-right">Quick Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(reports ?? []).map((report) => {
+                          const reasonInfo = REASON_LABELS[report.reason] || {
+                            label: report.reason,
+                            variant: "outline",
+                          };
 
-                        return (
-                          <TableRow
-                            key={report.id}
-                            className={report.status === "open" ? "bg-destructive/5" : ""}
-                          >
-                            <TableCell>
-                              <div className="space-y-1">
-                                <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                                  {report.target_type}
-                                </span>
-                                <p className="font-semibold text-xs text-foreground">
-                                  {report.target_preview ||
-                                    `ID: ${report.target_id.slice(0, 8)}...`}
-                                </p>
-                                {report.target_type === "item" && (
-                                  <Link
-                                    to="/items/$id"
-                                    params={{ id: report.target_id }}
-                                    className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
-                                  >
-                                    Inspect item <ExternalLink className="size-2.5" />
-                                  </Link>
-                                )}
-                              </div>
-                            </TableCell>
-
-                            <TableCell className="max-w-xs">
-                              <div className="space-y-1">
-                                <Badge variant={reasonInfo.variant} className="text-[10px]">
-                                  {reasonInfo.label}
-                                </Badge>
-                                {report.description && (
-                                  <p className="text-xs text-muted-foreground italic line-clamp-2">
-                                    "{report.description}"
-                                  </p>
-                                )}
-                                {report.admin_notes && (
-                                  <p className="text-[11px] text-primary">
-                                    <strong>Admin note:</strong> {report.admin_notes}
-                                  </p>
-                                )}
-                              </div>
-                            </TableCell>
-
-                            <TableCell className="text-xs text-muted-foreground">
-                              {report.reporter_name || report.reporter_id.slice(0, 8)}
-                            </TableCell>
-
-                            <TableCell>
-                              <Badge
-                                variant={
-                                  report.status === "resolved"
-                                    ? "outline"
-                                    : report.status === "dismissed"
-                                      ? "secondary"
-                                      : "destructive"
-                                }
-                                className="text-[10px] font-semibold uppercase"
-                              >
-                                {report.status}
-                              </Badge>
-                            </TableCell>
-
-                            <TableCell className="text-xs text-muted-foreground">
-                              {formatDateTime(report.created_at)}
-                            </TableCell>
-
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-1.5">
-                                {report.status !== "resolved" && report.status !== "dismissed" ? (
-                                  <>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="h-7 gap-1 text-xs text-destructive hover:bg-destructive/10"
-                                      onClick={() =>
-                                        handleOpenResolveDialog(
-                                          report,
-                                          "resolved",
-                                          report.target_type === "item"
-                                            ? "item_removed"
-                                            : "warning_issued",
-                                        )
-                                      }
-                                    >
-                                      <AlertTriangle className="size-3" />
-                                      {report.target_type === "item"
-                                        ? "Remove Item"
-                                        : "Take Action"}
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-7 gap-1 text-xs text-muted-foreground hover:bg-muted"
-                                      onClick={() =>
-                                        handleOpenResolveDialog(report, "dismissed", "none")
-                                      }
-                                    >
-                                      <XCircle className="size-3" /> Dismiss
-                                    </Button>
-                                  </>
-                                ) : (
-                                  <span className="text-[11px] text-muted-foreground italic">
-                                    Action: {report.action_taken || "none"}
+                          return (
+                            <TableRow
+                              key={report.id}
+                              className={report.status === "open" ? "bg-destructive/5" : ""}
+                            >
+                              <TableCell>
+                                <div className="space-y-1">
+                                  <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                                    {report.target_type}
                                   </span>
-                                )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                                  <p className="font-semibold text-xs text-foreground">
+                                    {report.target_preview ||
+                                      `ID: ${report.target_id.slice(0, 8)}...`}
+                                  </p>
+                                  {report.target_type === "item" && (
+                                    <Link
+                                      to="/items/$id"
+                                      params={{ id: report.target_id }}
+                                      className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
+                                    >
+                                      Inspect item <ExternalLink className="size-2.5" />
+                                    </Link>
+                                  )}
+                                </div>
+                              </TableCell>
+
+                              <TableCell className="max-w-xs">
+                                <div className="space-y-1">
+                                  <Badge variant={reasonInfo.variant} className="text-[10px]">
+                                    {reasonInfo.label}
+                                  </Badge>
+                                  {report.description && (
+                                    <p className="text-xs text-muted-foreground italic line-clamp-2">
+                                      "{report.description}"
+                                    </p>
+                                  )}
+                                  {report.admin_notes && (
+                                    <p className="text-[11px] text-primary">
+                                      <strong>Admin note:</strong> {report.admin_notes}
+                                    </p>
+                                  )}
+                                </div>
+                              </TableCell>
+
+                              <TableCell className="text-xs text-muted-foreground">
+                                {report.reporter_name || report.reporter_id.slice(0, 8)}
+                              </TableCell>
+
+                              <TableCell>
+                                <Badge
+                                  variant={
+                                    report.status === "resolved"
+                                      ? "outline"
+                                      : report.status === "dismissed"
+                                        ? "secondary"
+                                        : "destructive"
+                                  }
+                                  className="text-[10px] font-semibold uppercase"
+                                >
+                                  {report.status}
+                                </Badge>
+                              </TableCell>
+
+                              <TableCell className="text-xs text-muted-foreground">
+                                {formatDateTime(report.created_at)}
+                              </TableCell>
+
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  {report.status !== "resolved" && report.status !== "dismissed" ? (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-7 gap-1 text-xs text-destructive hover:bg-destructive/10"
+                                        onClick={() =>
+                                          handleOpenResolveDialog(
+                                            report,
+                                            "resolved",
+                                            report.target_type === "item"
+                                              ? "item_removed"
+                                              : "warning_issued",
+                                          )
+                                        }
+                                      >
+                                        <AlertTriangle className="size-3" />
+                                        {report.target_type === "item"
+                                          ? "Remove Item"
+                                          : "Take Action"}
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 gap-1 text-xs text-muted-foreground hover:bg-muted"
+                                        onClick={() =>
+                                          handleOpenResolveDialog(report, "dismissed", "none")
+                                        }
+                                      >
+                                        <XCircle className="size-3" /> Dismiss
+                                      </Button>
+                                    </>
+                                  ) : (
+                                    <span className="text-[11px] text-muted-foreground italic">
+                                      Action: {report.action_taken || "none"}
+                                    </span>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </div>
             </TabsContent>
@@ -441,50 +446,52 @@ function Admin() {
                 {itemsLoading ? (
                   <Skeleton className="h-72 w-full" />
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Item</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Posted</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {(items ?? []).map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell>
-                            <Link
-                              to="/items/$id"
-                              params={{ id: item.id }}
-                              className="font-medium hover:underline"
-                            >
-                              {item.title}
-                            </Link>
-                            <p className="text-xs text-muted-foreground">{item.poster_name}</p>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={item.item_type === "lost" ? "lost" : "found"}>
-                              {item.item_type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-sm">{statusLabel[item.status]}</TableCell>
-                          <TableCell className="text-sm">{formatDate(item.created_at)}</TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="text-destructive hover:bg-destructive/10"
-                              onClick={() => remove.mutate(item.id)}
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </TableCell>
+                  <div className="overflow-x-auto w-full">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Item</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Posted</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {(items ?? []).map((item) => (
+                          <TableRow key={item.id}>
+                            <TableCell>
+                              <Link
+                                to="/items/$id"
+                                params={{ id: item.id }}
+                                className="font-medium hover:underline"
+                              >
+                                {item.title}
+                              </Link>
+                              <p className="text-xs text-muted-foreground">{item.poster_name}</p>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={item.item_type === "lost" ? "lost" : "found"}>
+                                {item.item_type}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-sm">{statusLabel[item.status]}</TableCell>
+                            <TableCell className="text-sm">{formatDate(item.created_at)}</TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="text-destructive hover:bg-destructive/10"
+                                onClick={() => remove.mutate(item.id)}
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </div>
             </TabsContent>
@@ -499,40 +506,42 @@ function Admin() {
                     No moderation audit log entries recorded yet.
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Timestamp</TableHead>
-                        <TableHead>Admin</TableHead>
-                        <TableHead>Action</TableHead>
-                        <TableHead>Target</TableHead>
-                        <TableHead>Details</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {(auditLogs ?? []).map((log) => (
-                        <TableRow key={log.id}>
-                          <TableCell className="text-xs text-muted-foreground">
-                            {formatDateTime(log.created_at)}
-                          </TableCell>
-                          <TableCell className="text-xs font-semibold">
-                            {log.admin_name || log.admin_id.slice(0, 8)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="text-[10px] font-semibold">
-                              {log.action}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground uppercase">
-                            {log.target_type}: {log.target_id.slice(0, 8)}...
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
-                            {log.details || "-"}
-                          </TableCell>
+                  <div className="overflow-x-auto w-full">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Timestamp</TableHead>
+                          <TableHead>Admin</TableHead>
+                          <TableHead>Action</TableHead>
+                          <TableHead>Target</TableHead>
+                          <TableHead>Details</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {(auditLogs ?? []).map((log) => (
+                          <TableRow key={log.id}>
+                            <TableCell className="text-xs text-muted-foreground">
+                              {formatDateTime(log.created_at)}
+                            </TableCell>
+                            <TableCell className="text-xs font-semibold">
+                              {log.admin_name || log.admin_id.slice(0, 8)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="text-[10px] font-semibold">
+                                {log.action}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground uppercase">
+                              {log.target_type}: {log.target_id.slice(0, 8)}...
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                              {log.details || "-"}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </div>
             </TabsContent>
@@ -541,7 +550,7 @@ function Admin() {
 
         {/* Resolution Dialog Modal */}
         <Dialog open={!!selectedReport} onOpenChange={(open) => !open && setSelectedReport(null)}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md">
             <DialogHeader>
               <div className="flex items-center gap-2">
                 <Shield className="size-5 text-primary" />

@@ -96,7 +96,7 @@ function ResetPasswordPage() {
           <Link to="/" className="inline-block font-display text-2xl font-semibold text-primary">
             FoundIt
           </Link>
-          <h1 className="mt-4 flex items-center justify-center gap-2 text-2xl font-bold">
+          <h1 className="mt-4 flex flex-col sm:flex-row sm:items-center justify-center gap-2 text-xl sm:text-2xl font-bold">
             <KeyRound className="size-6 text-primary" /> Reset Your Password
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">

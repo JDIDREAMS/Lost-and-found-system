@@ -284,7 +284,7 @@ function Post() {
       <main className="fluid-container-narrow py-10">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h1 className="font-display text-3xl font-semibold">Post an item</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-semibold">Post an item</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Report something you lost, or help return something you found.
             </p>
@@ -303,7 +303,7 @@ function Post() {
         {/* Offline Drafts Recovery Bar */}
         {offlineDrafts.length > 0 && (
           <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 font-bold text-amber-800 dark:text-amber-300">
                 <WifiOff className="size-4 text-amber-600" />
                 <span>Offline Drafts Saved ({offlineDrafts.length})</span>
@@ -506,7 +506,7 @@ function Post() {
 
           {/* Protected Sensitive Detail Field */}
           <div className="rounded-2xl border border-primary/25 bg-gradient-to-b from-primary/5 via-card to-card p-4 space-y-2.5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <div className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-primary">
                   <Lock className="size-3.5" />

@@ -34,7 +34,7 @@ export function SmartMatchesWidget({ itemId, itemType, title }: SmartMatchesWidg
 
   return (
     <div className="rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/5 via-card to-card p-5 shadow-soft">
-      <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3.5">
         <div className="flex items-center gap-2">
           <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <Sparkles className="size-4 animate-pulse" />

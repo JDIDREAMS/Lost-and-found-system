@@ -207,11 +207,13 @@ function Dashboard() {
       <SiteHeader />
       <main className="fluid-container py-10">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="font-display text-3xl font-semibold">Your dashboard</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{user?.email}</p>
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-2xl sm:text-3xl font-semibold truncate">
+              Your dashboard
+            </h1>
+            <p className="mt-1 text-xs sm:text-sm text-muted-foreground truncate">{user?.email}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <NotificationPreferencesDialog />
             <Button asChild>
               <Link to="/post">Report an item</Link>
@@ -311,25 +313,30 @@ function Dashboard() {
                     key={group.sourceItem.id}
                     className="overflow-hidden rounded-2xl border border-primary/20 bg-card p-5 shadow-soft"
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4">
-                      <div>
-                        <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
                           <Badge
                             variant={group.sourceItem.item_type === "lost" ? "lost" : "found"}
-                            className="uppercase text-[10px]"
+                            className="uppercase text-[10px] shrink-0"
                           >
                             Your {group.sourceItem.item_type} post
                           </Badge>
-                          <h3 className="font-display text-base font-semibold">
+                          <h3 className="font-display text-base font-semibold truncate">
                             {group.sourceItem.title}
                           </h3>
                         </div>
-                        <p className="mt-1 text-xs text-muted-foreground">
+                        <p className="mt-1 text-xs text-muted-foreground truncate">
                           {group.sourceItem.category} • {group.sourceItem.location} •{" "}
                           {group.sourceItem.date_occurred}
                         </p>
                       </div>
-                      <Button variant="outline" size="sm" asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0 sm:w-auto w-full"
+                        asChild
+                      >
                         <Link to="/items/$id" params={{ id: group.sourceItem.id }}>
                           View your post
                         </Link>
@@ -454,30 +461,30 @@ function Dashboard() {
                 {myClaims.map((c) => (
                   <li
                     key={c.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-5 shadow-soft"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-card p-5 shadow-soft"
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
                         {c.items?.item_type && (
                           <Badge
                             variant={c.items.item_type === "lost" ? "lost" : "found"}
-                            className="text-[10px] uppercase"
+                            className="text-[10px] uppercase shrink-0"
                           >
                             {c.items.item_type}
                           </Badge>
                         )}
-                        <p className="font-semibold text-foreground">
+                        <p className="font-semibold text-foreground truncate">
                           {c.items?.title ?? "Claimed Item"}
                         </p>
                       </div>
-                      <p className="mt-1.5 line-clamp-1 text-sm text-muted-foreground">
+                      <p className="mt-1.5 line-clamp-2 sm:line-clamp-1 text-sm text-muted-foreground">
                         {c.message}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
                         Submitted on {formatDateTime(c.created_at)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
                       <Badge
                         variant={
                           c.status === "approved"
@@ -518,23 +525,23 @@ function Dashboard() {
                 {receivedClaims.map((c) => (
                   <li
                     key={c.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-card p-5 shadow-soft"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-primary/20 bg-card p-5 shadow-soft"
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <ShieldCheck className="size-4 text-primary" />
-                        <p className="font-semibold text-foreground">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <ShieldCheck className="size-4 text-primary shrink-0" />
+                        <p className="font-semibold text-foreground truncate">
                           Claim on: {c.items?.title ?? "Your Listing"}
                         </p>
                       </div>
-                      <p className="mt-1.5 line-clamp-1 text-sm text-muted-foreground">
+                      <p className="mt-1.5 line-clamp-2 sm:line-clamp-1 text-sm text-muted-foreground">
                         Proof: {c.message}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
                         Received on {formatDateTime(c.created_at)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
                       <Badge
                         variant={
                           c.status === "approved"
@@ -571,7 +578,7 @@ function Dashboard() {
                 <Skeleton className="h-28 rounded-2xl" />
               </div>
             ) : watchlists?.length ? (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {watchlists.map((w) => {
                   const filterPills = [
                     w.keyword ? `Keyword: "${w.keyword}"` : null,
@@ -617,13 +624,20 @@ function Dashboard() {
                         </div>
                       </div>
 
-                      <div className="mt-4 flex items-center justify-between border-t pt-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          {w.notify_in_app && "🔔 In-App"}
-                          {w.notify_email && " • 📧 Email"}
-                          {w.notify_whatsapp && " • 💬 WhatsApp"}
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3 text-xs text-muted-foreground">
+                        <span className="flex flex-wrap items-center gap-1.5">
+                          {w.notify_in_app && <span className="whitespace-nowrap">🔔 In-App</span>}
+                          {w.notify_email && <span className="whitespace-nowrap">📧 Email</span>}
+                          {w.notify_whatsapp && (
+                            <span className="whitespace-nowrap">💬 WhatsApp</span>
+                          )}
                         </span>
-                        <Button variant="link" size="sm" asChild className="h-auto p-0 text-xs">
+                        <Button
+                          variant="link"
+                          size="sm"
+                          asChild
+                          className="h-auto p-0 text-xs shrink-0"
+                        >
                           <Link
                             to="/browse"
                             search={{

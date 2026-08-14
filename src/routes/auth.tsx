@@ -214,7 +214,7 @@ function AuthPage() {
         <p className="text-sm opacity-70">Campus lost &amp; found board</p>
       </div>
 
-      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center fluid-container py-12">
+      <div className="flex min-h-screen lg:min-h-[calc(100vh-4rem)] items-center justify-center fluid-container py-12">
         <div className="w-full max-w-md">
           {showForgot ? (
             <div className="space-y-4">
@@ -291,7 +291,7 @@ function AuthPage() {
             </div>
           ) : (
             <>
-              <h1 className="text-3xl font-semibold">Welcome</h1>
+              <h1 className="text-2xl sm:text-3xl font-semibold">Welcome</h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 Sign in or create an account to continue.
               </p>
