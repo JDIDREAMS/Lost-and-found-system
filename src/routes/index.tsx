@@ -55,6 +55,10 @@ function Index() {
     queryKey: ["items", "recent-home"],
     queryFn: async (): Promise<ItemRow[]> => {
       try {
+        const { items } = await api.getItems();
+        return (items ?? []).slice(0, 8) as unknown as ItemRow[];
+      } catch (err) {
+        console.warn("Express API getItems failed, falling back to Supabase...", err);
         const { data, error } = await supabase
           .from("items")
           .select("*")
@@ -62,36 +66,40 @@ function Index() {
           .limit(8);
         if (error) throw error;
         return (data ?? []) as ItemRow[];
-      } catch (err) {
-        console.warn("Supabase fetch failed, falling back to API...", err);
-        const { items } = await api.getItems();
-        return (items ?? []).slice(0, 8) as ItemRow[];
       }
     },
   });
 
   const { data: stats } = useQuery({
-    queryKey: ["items", "supabase", "stats"],
+    queryKey: ["items", "stats"],
     queryFn: async () => {
       try {
-        const [total, resolved, found] = await Promise.all([
-          supabase.from("items").select("*", { count: "exact", head: true }),
-          supabase
-            .from("items")
-            .select("*", { count: "exact", head: true })
-            .eq("status", "resolved"),
-          supabase
-            .from("items")
-            .select("*", { count: "exact", head: true })
-            .eq("item_type", "found"),
-        ]);
-        return {
-          total: total.count ?? 0,
-          resolved: resolved.count ?? 0,
-          found: found.count ?? 0,
-        };
+        const { items } = await api.getItems();
+        const total = items.length;
+        const resolved = items.filter((i) => i.status === "resolved").length;
+        const found = items.filter((i) => i.item_type === "found").length;
+        return { total, resolved, found };
       } catch {
-        return { total: 0, resolved: 0, found: 0 };
+        try {
+          const [total, resolved, found] = await Promise.all([
+            supabase.from("items").select("*", { count: "exact", head: true }),
+            supabase
+              .from("items")
+              .select("*", { count: "exact", head: true })
+              .eq("status", "resolved"),
+            supabase
+              .from("items")
+              .select("*", { count: "exact", head: true })
+              .eq("item_type", "found"),
+          ]);
+          return {
+            total: total.count ?? 0,
+            resolved: resolved.count ?? 0,
+            found: found.count ?? 0,
+          };
+        } catch {
+          return { total: 0, resolved: 0, found: 0 };
+        }
       }
     },
   });

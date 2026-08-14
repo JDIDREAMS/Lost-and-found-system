@@ -78,6 +78,10 @@ function Browse() {
     queryKey: ["items", "browse-all"],
     queryFn: async (): Promise<ItemRow[]> => {
       try {
+        const { items } = await api.getItems();
+        return (items ?? []) as unknown as ItemRow[];
+      } catch (err) {
+        console.warn("Express API getItems failed, falling back to Supabase...", err);
         const { data: sbData, error } = await supabase
           .from("items")
           .select("*")
@@ -85,10 +89,6 @@ function Browse() {
 
         if (error) throw error;
         return (sbData ?? []) as ItemRow[];
-      } catch (err) {
-        console.warn("Supabase fetch failed, trying API fallback...", err);
-        const { items } = await api.getItems();
-        return (items ?? []) as ItemRow[];
       }
     },
   });
