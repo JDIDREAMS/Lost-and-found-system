@@ -108,17 +108,23 @@ export class ClaimsController {
     }
 
     const item = await ItemsService.getById(claim.item_id);
-
-    // Only the claimant, the item poster, or an admin can access claim details
-    const isParticipant =
-      claim.claimant_id === user.id || item?.posted_by === user.id || user.role === "admin";
+    const isOwner = item?.posted_by === user.id;
+    const isParticipant = claim.claimant_id === user.id || isOwner || user.role === "admin";
 
     if (!isParticipant) {
       res.status(403).json({ error: "Forbidden: You are not a participant in this claim" });
       return;
     }
 
-    res.json({ claim: { ...claim, items: item } });
+    const canViewContact = isOwner || user.role === "admin" || claim.status === "approved";
+    const itemResponse = item
+      ? {
+          ...item,
+          contact_info: canViewContact ? item.contact_info : null,
+        }
+      : null;
+
+    res.json({ claim: { ...claim, items: itemResponse } });
   }
 
   static async updateStatus(req: AuthenticatedRequest, res: Response): Promise<void> {
