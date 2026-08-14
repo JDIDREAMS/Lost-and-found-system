@@ -252,19 +252,13 @@ function Dashboard() {
           {/* TAB 1: My Listings (Lost and Found posts) */}
           <TabsContent value="items" className="pt-6">
             {itemsLoading ? (
-              <div
-                className="grid gap-[clamp(1rem,3vw,1.5rem)]"
-                style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(180px, 100%), 1fr))" }}
-              >
+              <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton key={i} className="h-72 rounded-2xl" />
                 ))}
               </div>
             ) : myItems && myItems.length > 0 ? (
-              <div
-                className="grid gap-[clamp(1rem,3vw,1.5rem)]"
-                style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(180px, 100%), 1fr))" }}
-              >
+              <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {myItems.map((item) => (
                   <div
                     key={item.id}
