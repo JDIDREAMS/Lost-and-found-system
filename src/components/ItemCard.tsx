@@ -15,7 +15,12 @@ export function ItemCard({
   className?: string;
 }) {
   const expiry = getDaysRemaining(item.created_at, item.expires_at);
-  const zone = CAMPUS_ZONES.find((z) => z.id === item.campus_zone);
+  const zone = CAMPUS_ZONES.find(
+    (z) =>
+      z.id !== "all" &&
+      (z.id === item.campus_zone ||
+        (z.id === "student_union" && item.campus_zone === "union")),
+  );
 
   if (layout === "list") {
     return (

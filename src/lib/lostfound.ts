@@ -28,6 +28,52 @@ export const CAMPUS_ZONES = [
 
 export type CampusZoneId = (typeof CAMPUS_ZONES)[number]["id"];
 
+export const ZONE_KEYWORDS: Record<string, string[]> = {
+  library: ["library", "study commons", "reading room", "archive", "lib"],
+  student_union: ["union", "student union", "food court", "canteen", "cafeteria", "snack bar"],
+  engineering: ["engineering", "tech complex", "workshop", "maker", "cad"],
+  science: ["science", "chemistry", "physics", "biology", "research", "lab"],
+  sports: ["sports", "arena", "gym", "gymnasium", "stadium", "pitch", "court", "field", "pool"],
+  medical: ["medical", "health", "centre", "center", "clinic", "hospital", "pharmacy", "infirmary"],
+  hostels: ["hostel", "residence", "dorm", "hall", "flat", "apartment", "living quarters"],
+  admin: ["admin", "administration", "bursary", "registry", "dean", "office", "senate"],
+  other: ["other", "spot", "park", "street", "gate", "junction"],
+};
+
+export function isItemInCampusZone(
+  itemCampusZone: string | null | undefined,
+  targetZone: string,
+  locationText?: string | null,
+): boolean {
+  if (!targetZone || targetZone === "all" || targetZone === "any") return true;
+
+  const normalizedItemZone = (itemCampusZone || "").trim().toLowerCase();
+  const normalizedTarget = targetZone.trim().toLowerCase();
+
+  // Direct match
+  if (normalizedItemZone === normalizedTarget) return true;
+
+  // Alias matching (e.g. union <=> student_union)
+  if (
+    (normalizedTarget === "student_union" && (normalizedItemZone === "union" || normalizedItemZone === "student_union")) ||
+    (normalizedTarget === "union" && (normalizedItemZone === "student_union" || normalizedItemZone === "union"))
+  ) {
+    return true;
+  }
+
+  // If item has no zone or has 'other', check location text against keywords
+  if (locationText && (!normalizedItemZone || normalizedItemZone === "other")) {
+    const loc = locationText.toLowerCase();
+    const keywords = ZONE_KEYWORDS[normalizedTarget];
+    if (keywords && keywords.some((kw) => loc.includes(kw))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
 export type ItemType = "lost" | "found";
 export type ItemStatus = "open" | "claimed" | "resolved" | "expired";
 export type ClaimStatus = "pending" | "approved" | "rejected";
