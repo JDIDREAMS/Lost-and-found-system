@@ -25,9 +25,10 @@ describe("Rich Item Evidence & Sensitive Verification Detail", () => {
     it("parses image payloads correctly", () => {
       expect(parseImagePaths(null)).toEqual([]);
       expect(parseImagePaths("/uploads/single.jpg")).toEqual(["/uploads/single.jpg"]);
-      expect(
-        parseImagePaths(JSON.stringify(["/uploads/img1.jpg", "/uploads/img2.jpg"])),
-      ).toEqual(["/uploads/img1.jpg", "/uploads/img2.jpg"]);
+      expect(parseImagePaths(JSON.stringify(["/uploads/img1.jpg", "/uploads/img2.jpg"]))).toEqual([
+        "/uploads/img1.jpg",
+        "/uploads/img2.jpg",
+      ]);
     });
   });
 

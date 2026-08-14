@@ -18,6 +18,7 @@ export interface Item {
   description: string;
   category: string;
   item_type: "lost" | "found";
+  campus_zone?: string | null | undefined;
   location: string;
   date_occurred: string;
   image_url: string | null;
@@ -25,12 +26,14 @@ export interface Item {
   sensitive_details?: string | null | undefined;
   has_sensitive_details?: boolean | undefined;
   sensitive_details_unlocked?: boolean | undefined;
-  status: "open" | "claimed" | "resolved";
+  status: "open" | "claimed" | "resolved" | "expired";
   contact_info: string | null;
   posted_by: string | null;
   poster_name: string;
   created_at: string;
   updated_at: string;
+  expires_at?: string | null | undefined;
+  bumped_at?: string | null | undefined;
 }
 
 export interface ProofDetails {
@@ -231,17 +234,21 @@ export const api = {
 
   // Items
   getItems: (params?: {
-    keyword?: string;
-    query?: string;
-    q?: string;
-    category?: string;
-    type?: string;
-    status?: string;
+    keyword?: string | undefined;
+    query?: string | undefined;
+    q?: string | undefined;
+    category?: string | undefined;
+    campus_zone?: string | undefined;
+    zone?: string | undefined;
+    type?: string | undefined;
+    status?: string | undefined;
   }) => {
     const search = new URLSearchParams();
     const kw = params?.keyword || params?.query || params?.q;
     if (kw) search.set("keyword", kw);
     if (params?.category) search.set("category", params.category);
+    const z = params?.campus_zone || params?.zone;
+    if (z) search.set("campus_zone", z);
     if (params?.type) search.set("type", params.type);
     if (params?.status) search.set("status", params.status);
     const qStr = search.toString();
@@ -254,6 +261,16 @@ export const api = {
     request<{ item: Item }>("/items", {
       method: "POST",
       body: JSON.stringify(payload),
+    }),
+
+  bumpItem: (id: string) =>
+    request<{ item: Item; message: string }>(`/items/${id}/bump`, {
+      method: "POST",
+    }),
+
+  runLifecycleCheck: () =>
+    request<{ results: { expiredCount: number; nudgedCount: number } }>("/items/lifecycle/check", {
+      method: "POST",
     }),
 
   updateItem: (id: string, payload: Partial<Item>) =>
@@ -361,7 +378,9 @@ export const api = {
     return res.urls;
   },
 
-  uploadMedia: async (files: File[]): Promise<{ urls: string[]; videoUrl?: string }> => {
+  uploadMedia: async (
+    files: File[],
+  ): Promise<{ urls: string[]; videoUrl?: string | undefined }> => {
     const formData = new FormData();
     files.forEach((file) => formData.append("media", file));
     const res = await request<{

@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CATEGORIES } from "@/lib/lostfound";
+import { CATEGORIES, CAMPUS_ZONES } from "@/lib/lostfound";
 
 export const Route = createFileRoute("/post")({
   head: () => ({
@@ -56,6 +56,7 @@ function Post() {
   const [type, setType] = useState<"lost" | "found">("lost");
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<string>(CATEGORIES[0]!);
+  const [campusZone, setCampusZone] = useState<string>("library");
   const [description, setDescription] = useState("");
   const [sensitiveDetails, setSensitiveDetails] = useState("");
   const [location, setLocation] = useState("");
@@ -107,7 +108,7 @@ function Post() {
           if (uploadRes.urls.length > 0) {
             imagePayload =
               uploadRes.urls.length === 1
-                ? uploadRes.urls[0] ?? null
+                ? (uploadRes.urls[0] ?? null)
                 : JSON.stringify(uploadRes.urls);
           }
           if (uploadRes.videoUrl) {
@@ -120,6 +121,7 @@ function Post() {
           description: description.trim(),
           sensitive_details: sensitiveDetails.trim() || null,
           category,
+          campus_zone: campusZone,
           item_type: type,
           location: location.trim(),
           date_occurred: date,
@@ -146,9 +148,7 @@ function Post() {
       for (const file of files) {
         const ext = file.name.split(".").pop() || "jpg";
         const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("item-images")
-          .upload(path, file);
+        const { error: upErr } = await supabase.storage.from("item-images").upload(path, file);
         if (upErr) throw upErr;
         uploadedPaths.push(path);
       }
@@ -157,7 +157,7 @@ function Post() {
         uploadedPaths.length === 0
           ? null
           : uploadedPaths.length === 1
-            ? uploadedPaths[0] ?? null
+            ? (uploadedPaths[0] ?? null)
             : JSON.stringify(uploadedPaths);
 
       const { data, error } = await supabase
@@ -173,9 +173,7 @@ function Post() {
           image_url: imagePayload,
           posted_by: user.id,
           poster_name:
-            user.user_metadata?.["display_name"] ||
-            user.email?.split("@")[0] ||
-            "Member",
+            user.user_metadata?.["display_name"] || user.email?.split("@")[0] || "Member",
         })
         .select()
         .single();
@@ -271,15 +269,32 @@ function Post() {
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="location">Location</Label>
-            <Input
-              id="location"
-              required
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g. Main Library, second floor near study booths"
-            />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>Campus Geo-Zone</Label>
+              <Select value={campusZone} onValueChange={setCampusZone}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CAMPUS_ZONES.filter((z) => z.id !== "all").map((z) => (
+                    <SelectItem key={z.id} value={z.id}>
+                      {z.icon} {z.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="location">Specific Spot / Room</Label>
+              <Input
+                id="location"
+                required
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. 2nd floor study cubicle #4"
+              />
+            </div>
           </div>
 
           <div className="space-y-1.5">
@@ -322,7 +337,8 @@ function Post() {
 
             <p className="text-[11px] text-muted-foreground leading-relaxed">
               💡 <strong>How it protects you:</strong> Opportunists cannot see this secret detail.
-              It will stay hidden from the public and unlock <em>only</em> when you approve a legitimate claimant.
+              It will stay hidden from the public and unlock <em>only</em> when you approve a
+              legitimate claimant.
             </p>
           </div>
 

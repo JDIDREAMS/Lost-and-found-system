@@ -1,10 +1,12 @@
 import { supabaseAdmin, createScopedClient } from "../config/supabase.js";
 import { store, ItemRecord } from "../db/store.js";
+import { NotificationsService } from "./notifications.service.js";
 
 export class ItemsService {
   static async getAll(filters?: {
     keyword?: string;
     category?: string;
+    campus_zone?: string;
     item_type?: "lost" | "found";
     status?: string;
   }): Promise<ItemRecord[]> {
@@ -26,7 +28,7 @@ export class ItemsService {
       // ignore
     }
 
-    // 2. Load from in-memory / JSON store (ensuring locally posted items are always present)
+    // 2. Load from in-memory / JSON store
     for (const item of store.getItems()) {
       if (!combinedMap.has(item.id)) {
         combinedMap.set(item.id, item);
@@ -35,7 +37,7 @@ export class ItemsService {
 
     let items = Array.from(combinedMap.values());
 
-    // Sort by created_at descending
+    // Sort by created_at descending (bumped items jump to top)
     items.sort((a, b) => {
       const dateA = new Date(a.created_at || a.date_occurred).getTime();
       const dateB = new Date(b.created_at || b.date_occurred).getTime();
@@ -49,7 +51,10 @@ export class ItemsService {
     if (filters?.category && filters.category !== "any") {
       items = items.filter((i) => i.category === filters.category);
     }
-    if (filters?.status && filters.status !== "any") {
+    if (filters?.campus_zone && filters.campus_zone !== "all" && filters.campus_zone !== "any") {
+      items = items.filter((i) => i.campus_zone === filters.campus_zone);
+    }
+    if (filters?.status && filters.status !== "any" && filters.status !== "all") {
       items = items.filter((i) => i.status === filters.status);
     }
     if (filters?.keyword) {
@@ -58,7 +63,8 @@ export class ItemsService {
         (i) =>
           i.title.toLowerCase().includes(kw) ||
           i.description.toLowerCase().includes(kw) ||
-          i.location.toLowerCase().includes(kw),
+          i.location.toLowerCase().includes(kw) ||
+          (i.campus_zone && i.campus_zone.toLowerCase().includes(kw)),
       );
     }
     return items;
@@ -78,11 +84,15 @@ export class ItemsService {
     item: Omit<ItemRecord, "id" | "created_at" | "updated_at">,
     userToken?: string,
   ): Promise<ItemRecord> {
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 30 * 86400000).toISOString();
+
     const newRecord: ItemRecord = {
       id: crypto.randomUUID(),
       ...item,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      expires_at: expiresAt,
+      created_at: now.toISOString(),
+      updated_at: now.toISOString(),
     };
 
     // Always persist to local store first
@@ -99,6 +109,7 @@ export class ItemsService {
           description: item.description,
           category: item.category,
           item_type: item.item_type,
+          campus_zone: item.campus_zone || null,
           location: item.location,
           date_occurred: item.date_occurred,
           image_url: item.image_url,
@@ -115,8 +126,10 @@ export class ItemsService {
       if (!error && data) {
         return {
           ...(data as ItemRecord),
+          campus_zone: item.campus_zone || null,
           video_url: item.video_url || null,
           sensitive_details: item.sensitive_details || null,
+          expires_at: expiresAt,
         };
       }
     } catch {
@@ -126,15 +139,85 @@ export class ItemsService {
     return newRecord;
   }
 
+  static async bumpItem(
+    id: string,
+    userId: string,
+    userToken?: string,
+  ): Promise<ItemRecord | null> {
+    const existing = store.getItemById(id);
+    if (!existing) return null;
+
+    if (existing.posted_by !== userId) {
+      throw new Error("Only the owner can bump this listing");
+    }
+
+    const now = new Date();
+    const newExpiresAt = new Date(now.getTime() + 30 * 86400000).toISOString();
+
+    return this.update(
+      id,
+      {
+        created_at: now.toISOString(),
+        updated_at: now.toISOString(),
+        bumped_at: now.toISOString(),
+        expires_at: newExpiresAt,
+        status: "open",
+      },
+      userToken,
+    );
+  }
+
+  static async checkAndExpireStaleItems(): Promise<{
+    expiredCount: number;
+    nudgedCount: number;
+  }> {
+    const items = store.getItems();
+    const now = Date.now();
+    let expiredCount = 0;
+    let nudgedCount = 0;
+
+    for (const item of items) {
+      if (item.status !== "open") continue;
+
+      const createdTime = new Date(item.created_at).getTime();
+      const expiresTime = item.expires_at
+        ? new Date(item.expires_at).getTime()
+        : createdTime + 30 * 86400000;
+      const ageDays = (now - createdTime) / 86400000;
+
+      // 1. Auto-expire if lifespan is over
+      if (now >= expiresTime) {
+        store.updateItem(item.id, { status: "expired" });
+        expiredCount++;
+
+        if (item.posted_by) {
+          await NotificationsService.notify({
+            user_id: item.posted_by,
+            text: `⌛ Your listing "${item.title}" has expired after 30 days. You can renew or bump it anytime.`,
+            link: `/dashboard`,
+          });
+        }
+      } else if (ageDays >= 14 && !item.bumped_at && item.posted_by) {
+        // 2. 14-day reminder nudge
+        await NotificationsService.notify({
+          user_id: item.posted_by,
+          text: `⏰ Still missing? It's been 14 days since you posted "${item.title}". Bump your listing to keep it on top.`,
+          link: `/dashboard`,
+        });
+        nudgedCount++;
+      }
+    }
+
+    return { expiredCount, nudgedCount };
+  }
+
   static async update(
     id: string,
     updates: Partial<ItemRecord>,
     userToken?: string,
   ): Promise<ItemRecord | null> {
-    // Update local store
     const updatedLocal = store.updateItem(id, updates);
 
-    // Attempt to update Supabase
     try {
       const client = userToken ? createScopedClient(userToken) : supabaseAdmin;
       const { data, error } = await client

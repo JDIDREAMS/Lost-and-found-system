@@ -1,7 +1,17 @@
 import { useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Sparkles, MapPin, Calendar, ArrowRight, Tag, Inbox, ShieldCheck } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  Sparkles,
+  MapPin,
+  Calendar,
+  ArrowRight,
+  Tag,
+  Inbox,
+  ShieldCheck,
+  Rocket,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { api, UserSmartMatches, ProofDetails } from "@/lib/api";
@@ -47,6 +57,19 @@ interface ClaimWithItem {
 function Dashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  const bumpMutation = useMutation({
+    mutationFn: async (itemId: string) => {
+      return api.bumpItem(itemId);
+    },
+    onSuccess: (res) => {
+      toast.success(res.message || "Listing bumped to top!");
+      void qc.invalidateQueries({ queryKey: ["my-items"] });
+      void qc.invalidateQueries({ queryKey: ["items"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   useEffect(() => {
     if (!loading && !user) void navigate({ to: "/auth" });
@@ -198,7 +221,29 @@ function Dashboard() {
             ) : myItems?.length ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {myItems.map((item) => (
-                  <ItemCard key={item.id} item={item} />
+                  <div
+                    key={item.id}
+                    className="flex flex-col rounded-xl border bg-card shadow-soft overflow-hidden"
+                  >
+                    <ItemCard item={item} />
+                    <div className="flex items-center justify-between border-t bg-muted/40 px-3 py-2 text-xs">
+                      <span className="text-muted-foreground font-medium">
+                        {item.status === "expired" ? "Status: Expired" : "Manage Post"}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          bumpMutation.mutate(item.id);
+                        }}
+                        disabled={bumpMutation.isPending}
+                        className="h-7 text-xs border-primary/30 text-primary hover:bg-primary/10 flex items-center gap-1"
+                      >
+                        <Rocket className="size-3" /> Bump to Top
+                      </Button>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (

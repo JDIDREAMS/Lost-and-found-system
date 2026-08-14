@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
-import { CATEGORIES, type ItemRow } from "@/lib/lostfound";
+import { CATEGORIES, CAMPUS_ZONES, type ItemRow } from "@/lib/lostfound";
 
 export const Route = createFileRoute("/browse")({
   head: () => ({
@@ -26,12 +26,12 @@ export const Route = createFileRoute("/browse")({
       {
         name: "description",
         content:
-          "Search every reported lost and found item. Filter by category, type, location, status and date range.",
+          "Search every reported lost and found item. Filter by category, campus zone, location, status and date range.",
       },
       { property: "og:title", content: "Browse lost & found items | FoundIt" },
       {
         property: "og:description",
-        content: "Filter the campus board by category, location, status and date.",
+        content: "Filter the campus board by category, campus zone, location, status and date.",
       },
     ],
   }),
@@ -44,16 +44,19 @@ function Browse() {
   const [keyword, setKeyword] = useState("");
   const [type, setType] = useState(ANY);
   const [category, setCategory] = useState(ANY);
+  const [campusZone, setCampusZone] = useState("all");
   const [status, setStatus] = useState(ANY);
   const [location, setLocation] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["items", "all"],
+    queryKey: ["items", "all", campusZone],
     queryFn: async () => {
       try {
-        const { items } = await api.getItems();
+        const { items } = await api.getItems({
+          campus_zone: campusZone !== "all" ? campusZone : undefined,
+        });
         return items as unknown as ItemRow[];
       } catch (err) {
         console.warn("Express API getItems failed, falling back to Supabase...", err);
@@ -73,25 +76,27 @@ function Browse() {
     return (data ?? []).filter((item) => {
       if (type !== ANY && item.item_type !== type) return false;
       if (category !== ANY && item.category !== category) return false;
+      if (campusZone !== "all" && item.campus_zone && item.campus_zone !== campusZone) return false;
       if (status !== ANY && item.status !== status) return false;
       if (loc && !item.location.toLowerCase().includes(loc)) return false;
       if (from && item.date_occurred < from) return false;
       if (to && item.date_occurred > to) return false;
       if (
         k &&
-        !`${item.title} ${item.description} ${item.category} ${item.location}`
+        !`${item.title} ${item.description} ${item.category} ${item.location} ${item.campus_zone || ""}`
           .toLowerCase()
           .includes(k)
       )
         return false;
       return true;
     });
-  }, [data, keyword, type, category, status, location, from, to]);
+  }, [data, keyword, type, category, campusZone, status, location, from, to]);
 
   const reset = () => {
     setKeyword("");
     setType(ANY);
     setCategory(ANY);
+    setCampusZone("all");
     setStatus(ANY);
     setLocation("");
     setFrom("");
@@ -170,6 +175,22 @@ function Browse() {
               </div>
 
               <div className="space-y-1.5">
+                <Label>Campus Geo-Zone</Label>
+                <Select value={campusZone} onValueChange={setCampusZone}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CAMPUS_ZONES.map((z) => (
+                      <SelectItem key={z.id} value={z.id}>
+                        {z.icon} {z.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
                 <Label>Status</Label>
                 <Select value={status} onValueChange={setStatus}>
                   <SelectTrigger>
@@ -212,7 +233,29 @@ function Browse() {
             </div>
           </aside>
 
-          <section>
+          <section className="space-y-6">
+            {/* Campus Geo-Zone Quick Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+              {CAMPUS_ZONES.map((z) => {
+                const isActive = campusZone === z.id;
+                return (
+                  <button
+                    key={z.id}
+                    type="button"
+                    onClick={() => setCampusZone(z.id)}
+                    className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    <span>{z.icon}</span>
+                    <span>{z.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
             {isLoading ? (
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (

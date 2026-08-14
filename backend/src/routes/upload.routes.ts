@@ -40,10 +40,18 @@ const upload = multer({
       "video/webm",
       "video/quicktime",
     ];
-    if (allowedMime.includes(file.mimetype) || file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) {
+    if (
+      allowedMime.includes(file.mimetype) ||
+      file.mimetype.startsWith("image/") ||
+      file.mimetype.startsWith("video/")
+    ) {
       cb(null, true);
     } else {
-      cb(new Error("Unsupported file type. Please upload images (PNG, JPG, WebP) or video (MP4, WebM, MOV)."));
+      cb(
+        new Error(
+          "Unsupported file type. Please upload images (PNG, JPG, WebP) or video (MP4, WebM, MOV).",
+        ),
+      );
     }
   },
 });

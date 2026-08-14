@@ -24,17 +24,20 @@ export interface ItemRecord {
   description: string;
   category: string;
   item_type: "lost" | "found";
+  campus_zone?: string | null | undefined;
   location: string;
   date_occurred: string;
   image_url: string | null; // single URL or JSON array of URLs
   video_url?: string | null | undefined;
   sensitive_details?: string | null | undefined;
-  status: "open" | "claimed" | "resolved";
+  status: "open" | "claimed" | "resolved" | "expired";
   contact_info: string | null;
   posted_by: string | null;
   poster_name: string;
   created_at: string;
   updated_at: string;
+  expires_at?: string | null | undefined;
+  bumped_at?: string | null | undefined;
 }
 
 export interface ProofDetails {

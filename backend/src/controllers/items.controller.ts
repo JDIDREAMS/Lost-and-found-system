@@ -6,13 +6,13 @@ import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 
 export class ItemsController {
   static async list(req: AuthenticatedRequest, res: Response): Promise<void> {
-    const rawKeyword = (req.query["keyword"] ||
-      req.query["query"] ||
-      req.query["q"]) as string | undefined;
-    const { category, type, status } = req.query;
+    const rawKeyword = (req.query["keyword"] || req.query["query"] || req.query["q"]) as
+      string | undefined;
+    const { category, type, status, campus_zone, zone } = req.query;
     const items = await ItemsService.getAll({
       keyword: rawKeyword ? String(rawKeyword).trim() : undefined,
       category: category as string,
+      campus_zone: (campus_zone || zone) as string,
       item_type: type as "lost" | "found",
       status: status as string,
     });
@@ -27,10 +27,7 @@ export class ItemsController {
     res.json({ items: sanitized });
   }
 
-  static async getById(
-    req: AuthenticatedRequest,
-    res: Response,
-  ): Promise<void> {
+  static async getById(req: AuthenticatedRequest, res: Response): Promise<void> {
     const item = await ItemsService.getById(req.params["id"] as string);
     if (!item) {
       res.status(404).json({ error: "Item not found" });
@@ -67,25 +64,14 @@ export class ItemsController {
     res.json({ item: responseItem });
   }
 
-  static async getMatches(
-    req: AuthenticatedRequest,
-    res: Response,
-  ): Promise<void> {
+  static async getMatches(req: AuthenticatedRequest, res: Response): Promise<void> {
     const itemId = req.params["id"] as string;
-    const minScore = req.query["minScore"]
-      ? Number(req.query["minScore"])
-      : 40;
-    const matches = await SmartMatcherService.findMatchesForItem(
-      itemId,
-      minScore,
-    );
+    const minScore = req.query["minScore"] ? Number(req.query["minScore"]) : 40;
+    const matches = await SmartMatcherService.findMatchesForItem(itemId, minScore);
     res.json({ matches });
   }
 
-  static async getMySmartMatches(
-    req: AuthenticatedRequest,
-    res: Response,
-  ): Promise<void> {
+  static async getMySmartMatches(req: AuthenticatedRequest, res: Response): Promise<void> {
     const user = req.user!;
     const results = await SmartMatcherService.getMatchesForUser(user.id);
     res.json({ results });
@@ -98,6 +84,7 @@ export class ItemsController {
       description,
       category,
       item_type,
+      campus_zone,
       location,
       date_occurred,
       image_url,
@@ -112,6 +99,7 @@ export class ItemsController {
         description: description || "",
         category: category || "Other",
         item_type,
+        campus_zone: campus_zone || null,
         location: location || "",
         date_occurred: date_occurred || new Date().toISOString().slice(0, 10),
         image_url: image_url || null,
@@ -129,6 +117,29 @@ export class ItemsController {
     void SmartMatcherService.runAutomatedMatchAlerts(item);
 
     res.status(201).json({ item });
+  }
+
+  static async bump(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const user = req.user!;
+    const itemId = req.params["id"] as string;
+
+    try {
+      const bumped = await ItemsService.bumpItem(itemId, user.id, user.token);
+      if (!bumped) {
+        res.status(404).json({ error: "Item not found" });
+        return;
+      }
+      res.json({ item: bumped, message: "Listing bumped to top and extended for 30 days." });
+    } catch (err) {
+      res
+        .status(403)
+        .json({ error: err instanceof Error ? err.message : "Failed to bump listing" });
+    }
+  }
+
+  static async runLifecycle(_req: AuthenticatedRequest, res: Response): Promise<void> {
+    const results = await ItemsService.checkAndExpireStaleItems();
+    res.json({ results });
   }
 
   static async update(req: AuthenticatedRequest, res: Response): Promise<void> {

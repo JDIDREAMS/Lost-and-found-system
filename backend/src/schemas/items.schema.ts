@@ -21,6 +21,7 @@ export const createItemSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters").max(2000),
   category: z.string().default("Other"),
   item_type: z.enum(["lost", "found"]),
+  campus_zone: z.string().optional().nullable(),
   location: z.string().min(2, "Location must be at least 2 characters").max(100),
   date_occurred: z.string().min(1, "Valid occurrence date required"),
   contact_info: z.string().max(100).optional().nullable(),
@@ -30,5 +31,5 @@ export const createItemSchema = z.object({
 });
 
 export const updateItemSchema = createItemSchema.partial().extend({
-  status: z.enum(["open", "claimed", "resolved"]).optional(),
+  status: z.enum(["open", "claimed", "resolved", "expired"]).optional(),
 });

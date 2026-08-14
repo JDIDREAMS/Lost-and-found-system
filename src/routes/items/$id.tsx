@@ -16,6 +16,7 @@ import {
   LockOpen,
   Video,
   Play,
+  Rocket,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -50,12 +51,7 @@ function ItemGallery({
       <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
         {selectedMedia === "video" && videoUrl ? (
           <div className="aspect-[4/3] w-full bg-black flex items-center justify-center">
-            <video
-              src={videoUrl}
-              controls
-              autoPlay
-              className="h-full w-full object-contain"
-            />
+            <video src={videoUrl} controls autoPlay className="h-full w-full object-contain" />
           </div>
         ) : (
           <ItemImage
@@ -252,7 +248,10 @@ function ItemDetail() {
       try {
         await api.updateItem(id, { status });
       } catch {
-        const { error } = await supabase.from("items").update({ status }).eq("id", id);
+        const { error } = await supabase
+          .from("items")
+          .update({ status: status as "open" | "claimed" | "resolved" })
+          .eq("id", id);
         if (error) throw error;
       }
     },
@@ -275,6 +274,18 @@ function ItemDetail() {
       toast.success("Item removed.");
       void navigate({ to: "/browse" });
     },
+  });
+
+  const bumpPost = useMutation({
+    mutationFn: async () => {
+      return api.bumpItem(id);
+    },
+    onSuccess: (res) => {
+      toast.success(res.message || "Listing bumped to top!");
+      void qc.invalidateQueries({ queryKey: ["item", id] });
+      void qc.invalidateQueries({ queryKey: ["items"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   return (
@@ -353,7 +364,10 @@ function ItemDetail() {
                       <LockOpen className="size-4 text-emerald-600" />
                       <span>Sensitive Verification Evidence (Unlocked)</span>
                     </div>
-                    <Badge variant="outline" className="border-emerald-500/40 text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-500/20">
+                    <Badge
+                      variant="outline"
+                      className="border-emerald-500/40 text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-500/20"
+                    >
                       Verified Access
                     </Badge>
                   </div>
@@ -361,7 +375,8 @@ function ItemDetail() {
                     {item.sensitive_details}
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    This private identifier was recorded by the poster and unlocked because you have verified authorization.
+                    This private identifier was recorded by the poster and unlocked because you have
+                    verified authorization.
                   </p>
                 </div>
               ) : item.has_sensitive_details ? (
@@ -376,7 +391,9 @@ function ItemDetail() {
                     </Badge>
                   </div>
                   <p className="text-muted-foreground leading-relaxed">
-                    The poster recorded secret verification evidence for this item. To prevent opportunists, this remains protected and will unlock automatically once your proof of ownership is approved.
+                    The poster recorded secret verification evidence for this item. To prevent
+                    opportunists, this remains protected and will unlock automatically once your
+                    proof of ownership is approved.
                   </p>
                 </div>
               ) : null}
@@ -398,6 +415,14 @@ function ItemDetail() {
                         <SelectItem value="resolved">Resolved</SelectItem>
                       </SelectContent>
                     </Select>
+                    <Button
+                      variant="outline"
+                      onClick={() => bumpPost.mutate()}
+                      disabled={bumpPost.isPending}
+                      className="border-primary/30 text-primary hover:bg-primary/10 flex items-center gap-1.5"
+                    >
+                      <Rocket className="size-4" /> Bump to Top
+                    </Button>
                     <Button
                       variant="outline"
                       onClick={() => removeItem.mutate()}
