@@ -147,7 +147,8 @@ function Dashboard() {
   });
 
   const myClaims = (allClaimsData?.claims ?? []).filter(
-    (c: ClaimWithItem) => c.claimant_id === user?.id || (user?.email && c.claimant_id === user.email),
+    (c: ClaimWithItem) =>
+      c.claimant_id === user?.id || (user?.email && c.claimant_id === user.email),
   );
 
   const receivedClaims = (allClaimsData?.claims ?? []).filter((c: ClaimWithItem) => {

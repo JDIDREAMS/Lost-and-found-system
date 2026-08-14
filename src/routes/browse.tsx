@@ -53,7 +53,7 @@ function Browse() {
   const [to, setTo] = useState("");
 
   const { data, isLoading } = useQuery<ItemRow[]>({
-    queryKey: ["items", "supabase", campusZone],
+    queryKey: ["items", "supabase"],
     queryFn: async (): Promise<ItemRow[]> => {
       const { data, error } = await supabase
         .from("items")
@@ -74,25 +74,26 @@ function Browse() {
     const seen = new Set<string>();
 
     return (data ?? []).filter((item: ItemRow) => {
-      const contentKey = `${item.title.trim().toLowerCase()}__${item.item_type}__${item.location.trim().toLowerCase()}`;
-      if (seen.has(contentKey) || seen.has(item.id)) return false;
-      seen.add(contentKey);
-      seen.add(item.id);
-
       if (type !== ANY && item.item_type !== type) return false;
       if (category !== ANY && item.category !== category) return false;
-      if (campusZone !== "all" && item.campus_zone && item.campus_zone !== campusZone) return false;
+      if (campusZone !== "all" && item.campus_zone !== campusZone) return false;
       if (status !== ANY && item.status !== status) return false;
-      if (loc && !item.location.toLowerCase().includes(loc)) return false;
-      if (from && item.date_occurred < from) return false;
-      if (to && item.date_occurred > to) return false;
+      if (loc && !(item.location || "").toLowerCase().includes(loc)) return false;
+      if (from && (item.date_occurred || "") < from) return false;
+      if (to && (item.date_occurred || "").slice(0, 10) > to) return false;
       if (
         k &&
-        !`${item.title} ${item.description} ${item.category} ${item.location} ${item.campus_zone || ""}`
+        !`${item.title || ""} ${item.description || ""} ${item.category || ""} ${item.location || ""} ${item.campus_zone || ""}`
           .toLowerCase()
           .includes(k)
       )
         return false;
+
+      const contentKey = `${(item.title || "").trim().toLowerCase()}__${item.item_type}__${(item.location || "").trim().toLowerCase()}`;
+      if (seen.has(contentKey) || seen.has(item.id)) return false;
+      seen.add(contentKey);
+      seen.add(item.id);
+
       return true;
     });
   }, [data, keyword, type, category, campusZone, status, location, from, to]);

@@ -48,14 +48,8 @@ function Index() {
     queryFn: async () => {
       const [total, resolved, found] = await Promise.all([
         supabase.from("items").select("*", { count: "exact", head: true }),
-        supabase
-          .from("items")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "resolved"),
-        supabase
-          .from("items")
-          .select("*", { count: "exact", head: true })
-          .eq("item_type", "found"),
+        supabase.from("items").select("*", { count: "exact", head: true }).eq("status", "resolved"),
+        supabase.from("items").select("*", { count: "exact", head: true }).eq("item_type", "found"),
       ]);
       return {
         total: total.count ?? 0,
@@ -181,7 +175,10 @@ function Index() {
               </Link>
             </Button>
           </div>
-          <div className="grid gap-[clamp(1rem,3vw,1.5rem)]" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(180px, 100%), 1fr))" }}>
+          <div
+            className="grid gap-[clamp(1rem,3vw,1.5rem)]"
+            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(180px, 100%), 1fr))" }}
+          >
             {(recent ?? []).map((item) => (
               <ItemCard key={item.id} item={item} />
             ))}

@@ -49,7 +49,10 @@ export function ItemCard({ item }: { item: ItemRow }) {
             </Badge>
           )}
           {item.status !== "open" ? (
-            <Badge variant="outline" className="rounded bg-card/90 backdrop-blur text-[9px] px-1.5 py-0.5 font-medium">
+            <Badge
+              variant="outline"
+              className="rounded bg-card/90 backdrop-blur text-[9px] px-1.5 py-0.5 font-medium"
+            >
               {item.status === "claimed"
                 ? "Claim in progress"
                 : item.status === "expired"
@@ -71,16 +74,26 @@ export function ItemCard({ item }: { item: ItemRow }) {
         </div>
       </div>
       <div className="flex flex-1 flex-col gap-[clamp(0.25rem,2cqi,0.5rem)] p-[clamp(0.75rem,5cqi,1rem)]">
-        <span className="rule-label text-muted-foreground text-[length:clamp(0.55rem,3.5cqi,0.65rem)] tracking-wider">{item.category}</span>
-        <h3 className="text-[length:clamp(0.875rem,6cqi,1.125rem)] leading-snug font-bold line-clamp-1 break-words">{item.title}</h3>
-        <p className="line-clamp-2 text-[length:clamp(0.75rem,5cqi,0.875rem)] text-muted-foreground break-words leading-relaxed">{item.description}</p>
+        <span className="rule-label text-muted-foreground text-[length:clamp(0.55rem,3.5cqi,0.65rem)] tracking-wider">
+          {item.category}
+        </span>
+        <h3 className="text-[length:clamp(0.875rem,6cqi,1.125rem)] leading-snug font-bold line-clamp-1 break-words">
+          {item.title}
+        </h3>
+        <p className="line-clamp-2 text-[length:clamp(0.75rem,5cqi,0.875rem)] text-muted-foreground break-words leading-relaxed">
+          {item.description}
+        </p>
         <div className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-foreground/10 pt-[clamp(0.5rem,4cqi,0.75rem)] text-[length:clamp(0.65rem,4cqi,0.75rem)] text-muted-foreground">
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <span className="inline-flex items-center gap-[clamp(0.15rem,1cqi,0.25rem)]">
-              <MapPin className="size-[clamp(0.7rem,4cqi,0.9rem)] shrink-0 text-primary/70" /> <span className="truncate max-w-[110px] sm:max-w-[130px]">{item.location || "Unspecified"}</span>
+              <MapPin className="size-[clamp(0.7rem,4cqi,0.9rem)] shrink-0 text-primary/70" />{" "}
+              <span className="truncate max-w-[110px] sm:max-w-[130px]">
+                {item.location || "Unspecified"}
+              </span>
             </span>
             <span className="inline-flex items-center gap-[clamp(0.15rem,1cqi,0.25rem)] shrink-0">
-              <CalendarDays className="size-[clamp(0.7rem,4cqi,0.9rem)] shrink-0 text-primary/70" /> {formatDate(item.date_occurred)}
+              <CalendarDays className="size-[clamp(0.7rem,4cqi,0.9rem)] shrink-0 text-primary/70" />{" "}
+              {formatDate(item.date_occurred)}
             </span>
           </div>
           {item.posted_by && <TrustBadge userId={item.posted_by} compact />}
