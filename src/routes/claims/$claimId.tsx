@@ -2,7 +2,23 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Send, ShieldCheck, Tag, Info } from "lucide-react";
+import {
+  ArrowLeft,
+  Send,
+  ShieldCheck,
+  Tag,
+  Info,
+  MapPin,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Lock,
+  Phone,
+  MessageCircle,
+  PartyPopper,
+  Sparkles,
+  Check,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { api, ProofDetails, MeetupProposal, HandoverStatus } from "@/lib/api";
@@ -46,7 +62,12 @@ interface ClaimDetail {
   created_at: string;
   claimant_id: string;
   item_id: string;
-  items: { title: string; posted_by: string | null } | null;
+  items: {
+    title: string;
+    posted_by: string | null;
+    contact_info?: string | null;
+    status?: string;
+  } | null;
 }
 
 interface MessageRow {
@@ -56,13 +77,25 @@ interface MessageRow {
   created_at: string;
 }
 
-function ClaimThread() {
+export function ClaimThread() {
   const { claimId } = Route.useParams();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [draft, setDraft] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Poster interactive proof checklist state
+  const [checkedItems, setCheckedItems] = useState<{ [key: string]: boolean }>({
+    brand: true,
+    unique_marks: true,
+    contents: true,
+    serial: true,
+  });
+
+  const toggleChecklist = (key: string) => {
+    setCheckedItems((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   useEffect(() => {
     if (!loading && !user) void navigate({ to: "/auth" });
@@ -82,10 +115,19 @@ function ClaimThread() {
             message: apiClaim.message,
             proof_details: apiClaim.proof_details,
             decision_reason: apiClaim.decision_reason,
+            meetup: apiClaim.meetup,
+            handover: apiClaim.handover,
             created_at: apiClaim.created_at,
             claimant_id: apiClaim.claimant_id,
             item_id: apiClaim.item_id,
-            items: apiItem ? { title: apiItem.title, posted_by: apiItem.posted_by } : null,
+            items: apiItem
+              ? {
+                  title: apiItem.title,
+                  posted_by: apiItem.posted_by,
+                  contact_info: apiItem.contact_info,
+                  status: apiItem.status,
+                }
+              : null,
           } as ClaimDetail;
         }
       } catch (err) {
@@ -183,6 +225,13 @@ function ClaimThread() {
 
   const isOwner = user && claim?.items?.posted_by === user.id;
   const proof = claim?.proof_details;
+  const isApproved = claim?.status === "approved";
+  const isResolved = claim?.handover?.poster_confirmed && claim?.handover?.claimant_confirmed;
+
+  // Structured prompt actions
+  const applyPrompt = (text: string) => {
+    setDraft(text);
+  };
 
   return (
     <div className="min-h-screen">
@@ -262,11 +311,38 @@ function ClaimThread() {
               </div>
             </div>
 
-            {/* Structured Proof & Decision Banner */}
-            <div className="border-b bg-surface/40 p-5 space-y-3">
+            {/* Pinned Sticky Banner: Accepted Meetup or Fully Completed Handover */}
+            {isResolved ? (
+              <div className="flex items-center justify-between bg-emerald-500/15 border-b border-emerald-500/30 px-5 py-3 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                <div className="flex items-center gap-2">
+                  <PartyPopper className="size-4 text-emerald-600" />
+                  <span>
+                    🎉 Handover Completed &amp; Item Resolved! This claim thread is completed.
+                  </span>
+                </div>
+                <Badge variant="found">Closed &amp; Returned</Badge>
+              </div>
+            ) : claim.meetup?.status === "accepted" ? (
+              <div className="flex flex-wrap items-center justify-between gap-2 bg-primary/10 border-b border-primary/20 px-5 py-3 text-xs">
+                <div className="flex items-center gap-2 font-medium text-foreground">
+                  <MapPin className="size-4 text-primary" />
+                  <span>
+                    <strong>Accepted Meetup:</strong> {claim.meetup.location} on{" "}
+                    <strong>{formatDateTime(claim.meetup.scheduled_time)}</strong>
+                  </span>
+                </div>
+                <Badge variant="default" className="text-[10px]">
+                  🤝 Confirmed Place Pinned
+                </Badge>
+              </div>
+            ) : null}
+
+            {/* Structured Proof & Item-Identification Checklist */}
+            <div className="border-b bg-surface/40 p-5 space-y-3.5">
               <div className="flex items-center justify-between gap-2 border-b border-border/40 pb-2">
                 <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  <ShieldCheck className="size-4 text-primary" /> Submitted Proof of Ownership
+                  <ShieldCheck className="size-4 text-primary" /> Item-Identification Proof
+                  Checklist
                 </div>
                 <TrustBadge userId={isOwner ? claim.claimant_id : claim.items?.posted_by} compact />
               </div>
@@ -276,41 +352,151 @@ function ClaimThread() {
                   proof.unique_marks ||
                   proof.contents_description ||
                   proof.serial_fragment) && (
-                  <div className="grid gap-2 rounded-xl bg-card border p-3.5 text-xs sm:grid-cols-2">
-                    {proof.brand && (
-                      <div>
-                        <span className="font-semibold text-muted-foreground">Brand / Make: </span>
-                        <span className="text-foreground">{proof.brand}</span>
-                      </div>
-                    )}
-                    {proof.serial_fragment && (
-                      <div>
-                        <span className="font-semibold text-muted-foreground">
-                          Serial / Ending:{" "}
-                        </span>
-                        <span className="text-foreground">{proof.serial_fragment}</span>
-                      </div>
-                    )}
-                    {proof.unique_marks && (
-                      <div className="sm:col-span-2">
-                        <span className="font-semibold text-muted-foreground">Unique Marks: </span>
-                        <span className="text-foreground">{proof.unique_marks}</span>
-                      </div>
-                    )}
-                    {proof.contents_description && (
-                      <div className="sm:col-span-2">
-                        <span className="font-semibold text-muted-foreground">
-                          Contents / Inside:{" "}
-                        </span>
-                        <span className="text-foreground">{proof.contents_description}</span>
-                      </div>
-                    )}
+                  <div className="space-y-2 rounded-xl bg-card border p-3.5 text-xs">
+                    <p className="text-muted-foreground text-[11px] mb-2 font-medium">
+                      {isOwner
+                        ? "Verify claimant's submitted answers against the item in your possession:"
+                        : "Your submitted identification details:"}
+                    </p>
+
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {proof.brand && (
+                        <div className="flex items-center justify-between rounded-lg bg-muted/40 p-2 border">
+                          <div>
+                            <span className="font-semibold text-muted-foreground">Brand: </span>
+                            <span className="text-foreground">{proof.brand}</span>
+                          </div>
+                          {isOwner && (
+                            <button
+                              type="button"
+                              onClick={() => toggleChecklist("brand")}
+                              className={`flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold transition ${
+                                checkedItems["brand"]
+                                  ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                                  : "bg-destructive/20 text-destructive"
+                              }`}
+                            >
+                              {checkedItems["brand"] ? "✅ Matched" : "❌ No Match"}
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      {proof.serial_fragment && (
+                        <div className="flex items-center justify-between rounded-lg bg-muted/40 p-2 border">
+                          <div>
+                            <span className="font-semibold text-muted-foreground">
+                              Serial Hint:{" "}
+                            </span>
+                            <span className="text-foreground">{proof.serial_fragment}</span>
+                          </div>
+                          {isOwner && (
+                            <button
+                              type="button"
+                              onClick={() => toggleChecklist("serial")}
+                              className={`flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold transition ${
+                                checkedItems["serial"]
+                                  ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                                  : "bg-destructive/20 text-destructive"
+                              }`}
+                            >
+                              {checkedItems["serial"] ? "✅ Matched" : "❌ No Match"}
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      {proof.unique_marks && (
+                        <div className="sm:col-span-2 flex items-center justify-between rounded-lg bg-muted/40 p-2 border">
+                          <div>
+                            <span className="font-semibold text-muted-foreground">
+                              Unique Marks:{" "}
+                            </span>
+                            <span className="text-foreground">{proof.unique_marks}</span>
+                          </div>
+                          {isOwner && (
+                            <button
+                              type="button"
+                              onClick={() => toggleChecklist("unique_marks")}
+                              className={`flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold transition ${
+                                checkedItems["unique_marks"]
+                                  ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                                  : "bg-destructive/20 text-destructive"
+                              }`}
+                            >
+                              {checkedItems["unique_marks"] ? "✅ Matched" : "❌ No Match"}
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      {proof.contents_description && (
+                        <div className="sm:col-span-2 flex items-center justify-between rounded-lg bg-muted/40 p-2 border">
+                          <div>
+                            <span className="font-semibold text-muted-foreground">
+                              Contents Inside:{" "}
+                            </span>
+                            <span className="text-foreground">{proof.contents_description}</span>
+                          </div>
+                          {isOwner && (
+                            <button
+                              type="button"
+                              onClick={() => toggleChecklist("contents")}
+                              className={`flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold transition ${
+                                checkedItems["contents"]
+                                  ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                                  : "bg-destructive/20 text-destructive"
+                              }`}
+                            >
+                              {checkedItems["contents"] ? "✅ Matched" : "❌ No Match"}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
               <div className="text-xs text-muted-foreground">
-                <span className="font-semibold text-foreground">Statement: </span>
+                <span className="font-semibold text-foreground">Claim Statement: </span>
                 <span>{claim.message}</span>
+              </div>
+
+              {/* Privacy Guardrails: Contact Details revealed ONLY when approved */}
+              <div className="rounded-xl border p-3 text-xs">
+                {isApproved && claim.items?.contact_info ? (
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 p-2.5 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Phone className="size-4 text-emerald-600" />
+                      <div>
+                        <span className="font-semibold">Direct Contact (Claim Approved): </span>
+                        <span>+{claim.items.contact_info}</span>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs border-emerald-500/30 text-emerald-800 dark:text-emerald-300"
+                      asChild
+                    >
+                      <a
+                        href={`https://wa.me/${claim.items.contact_info.replace(/[^\d]/g, "")}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <MessageCircle className="size-3 mr-1" /> Open WhatsApp
+                      </a>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground text-[11px]">
+                    <Lock className="size-3.5 text-primary" />
+                    <span>
+                      <strong>Privacy Guardrail:</strong> Direct phone/contact information is masked
+                      and unlocked only after the claim is approved.
+                    </span>
+                  </div>
+                )}
               </div>
 
               {claim.decision_reason && (
@@ -346,6 +532,7 @@ function ClaimThread() {
               </div>
             </div>
 
+            {/* Chat Thread Messages */}
             <div className="max-h-[22rem] space-y-3 overflow-y-auto p-5">
               {(messages ?? []).map((m) => {
                 const mine = m.sender_id === user?.id;
@@ -367,16 +554,61 @@ function ClaimThread() {
               <div ref={bottomRef} />
             </div>
 
-            <form onSubmit={send} className="flex items-center gap-2 border-t p-4">
-              <Input
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                placeholder="Write a message…"
-              />
-              <Button type="submit" size="icon" disabled={!draft.trim()}>
-                <Send className="size-4" />
-              </Button>
-            </form>
+            {/* Structured Chat Prompts & Message Input */}
+            {isResolved ? (
+              <div className="border-t bg-muted/40 p-4 text-center text-xs text-muted-foreground">
+                🔒 Handover completed. This conversation thread has been finalized.
+              </div>
+            ) : (
+              <div className="border-t p-3 space-y-2">
+                {/* Quick Action Prompt Chips */}
+                <div className="flex flex-wrap items-center gap-1.5 px-1">
+                  <span className="text-[11px] font-semibold text-muted-foreground mr-1">
+                    Quick Prompts:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      applyPrompt(
+                        "Let's meet at Main Library entrance (Ground Floor lobby near security desk).",
+                      )
+                    }
+                    className="inline-flex items-center gap-1 rounded-full border bg-muted/50 px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-primary/10 hover:text-primary transition"
+                  >
+                    <MapPin className="size-3" /> Suggest meeting point
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      applyPrompt("Does tomorrow at 2:00 PM work for you for the handover?")
+                    }
+                    className="inline-flex items-center gap-1 rounded-full border bg-muted/50 px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-primary/10 hover:text-primary transition"
+                  >
+                    <Clock className="size-3" /> Suggest time
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      applyPrompt("Here is an additional identifying detail about this item: ")
+                    }
+                    className="inline-flex items-center gap-1 rounded-full border bg-muted/50 px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-primary/10 hover:text-primary transition"
+                  >
+                    <Sparkles className="size-3" /> Share identifying detail
+                  </button>
+                </div>
+
+                <form onSubmit={send} className="flex items-center gap-2">
+                  <Input
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    placeholder="Write a message or click a prompt above…"
+                  />
+                  <Button type="submit" size="icon" disabled={!draft.trim()}>
+                    <Send className="size-4" />
+                  </Button>
+                </form>
+              </div>
+            )}
           </div>
         )}
       </main>

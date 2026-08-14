@@ -308,6 +308,11 @@ class Store {
   }
 
   public save() {
+    // Keep tests isolated in-memory so they don't pollute local database with test items
+    if (process.env["NODE_ENV"] === "test" || process.env["VITEST"] === "true") {
+      return;
+    }
+
     try {
       if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
