@@ -121,6 +121,27 @@
   ],
   "items": [
     {
+      "id": "f6d3a8af-9326-4269-ac82-43463d239469",
+      "title": "hlhbhnhbn",
+      "description": "jkgvgbgvmb",
+      "category": "Electronics",
+      "item_type": "found",
+      "campus_zone": "library",
+      "location": "gfgbvy",
+      "date_occurred": "2026-08-14",
+      "image_url": "/uploads/367af9a9-91dd-43ec-bfda-86504336a277.jpg",
+      "video_url": null,
+      "sensitive_details": "gckhgmc",
+      "ocr_text": null,
+      "status": "open",
+      "contact_info": "43473384650",
+      "posted_by": "2c9646eb-a84e-45ac-a013-bce6776fda8c",
+      "poster_name": "kaykuffour",
+      "expires_at": "2026-09-13T07:06:34.923Z",
+      "created_at": "2026-08-14T07:06:34.923Z",
+      "updated_at": "2026-08-14T07:06:34.923Z"
+    },
+    {
       "id": "5dd7da3c-863e-413a-b0a7-c7da41a31272",
       "title": "mouse",
       "description": "black hp mouse",
@@ -325,10 +346,48 @@
       "updated_at": "2026-07-28T14:36:37.480Z"
     }
   ],
-  "claims": [],
+  "claims": [
+    {
+      "id": "84b9c95c-5d41-40c9-b956-0bbdc9ea1277",
+      "item_id": "d6d3415d-fbc8-488b-afc2-c741f1909d38",
+      "claimant_id": "2c9646eb-a84e-45ac-a013-bce6776fda8c",
+      "message": "jgxhsgkjHCHSg,lh",
+      "proof_details": {
+        "brand": "HJVVSJ",
+        "unique_marks": ",cvsKYUFSCHSCLG>cysH",
+        "contents_description": "hlxgyasg.yushxa",
+        "serial_fragment": "mhvhJS"
+      },
+      "status": "pending",
+      "created_at": "2026-08-14T07:07:50.698Z"
+    }
+  ],
   "messages": [],
-  "notifications": [],
+  "notifications": [
+    {
+      "id": "707f8621-8a25-4101-83da-646ebdd64bbb",
+      "user_id": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "text": "New proof-of-ownership claim submitted for your \",mghj\" listing",
+      "link": "/claims/84b9c95c-5d41-40c9-b956-0bbdc9ea1277",
+      "is_read": false,
+      "created_at": "2026-08-14T07:07:51.654681+00:00"
+    }
+  ],
   "reports": [],
   "audit_logs": [],
-  "feedbacks": []
+  "feedbacks": [],
+  "watchlists": [],
+  "preferences": [
+    {
+      "user_id": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "in_app": true,
+      "email": true,
+      "whatsapp": false,
+      "notify_on_claim": true,
+      "notify_on_message": true,
+      "notify_on_match": true,
+      "notify_on_handover": true,
+      "notify_on_watchlist": true
+    }
+  ]
 }
