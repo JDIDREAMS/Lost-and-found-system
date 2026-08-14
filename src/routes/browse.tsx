@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader, SiteFooter } from "@/components/SiteHeader";
 import { ItemCard } from "@/components/ItemCard";
@@ -9,6 +9,7 @@ import { WatchlistDialog } from "@/components/WatchlistDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -51,30 +52,33 @@ function Browse() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["items", "all", campusZone],
-    queryFn: async () => {
-      try {
-        const { items } = await api.getItems({
-          campus_zone: campusZone !== "all" ? campusZone : undefined,
-        });
-        return items as unknown as ItemRow[];
-      } catch (err) {
-        console.warn("Express API getItems failed, falling back to Supabase...", err);
-        const { data, error } = await supabase
-          .from("items")
-          .select("*")
-          .order("created_at", { ascending: false });
-        if (error) throw error;
-        return (data ?? []) as ItemRow[];
+  const { data, isLoading } = useQuery<ItemRow[]>({
+    queryKey: ["items", "supabase", campusZone],
+    queryFn: async (): Promise<ItemRow[]> => {
+      const { data, error } = await supabase
+        .from("items")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Failed to fetch items from Supabase:", error);
+        throw error;
       }
+      return (data ?? []) as ItemRow[];
     },
   });
 
-  const results = useMemo(() => {
+  const results: ItemRow[] = useMemo(() => {
     const k = keyword.trim().toLowerCase();
     const loc = location.trim().toLowerCase();
-    return (data ?? []).filter((item) => {
+    const seen = new Set<string>();
+
+    return (data ?? []).filter((item: ItemRow) => {
+      const contentKey = `${item.title.trim().toLowerCase()}__${item.item_type}__${item.location.trim().toLowerCase()}`;
+      if (seen.has(contentKey) || seen.has(item.id)) return false;
+      seen.add(contentKey);
+      seen.add(item.id);
+
       if (type !== ANY && item.item_type !== type) return false;
       if (category !== ANY && item.category !== category) return false;
       if (campusZone !== "all" && item.campus_zone && item.campus_zone !== campusZone) return false;
@@ -93,6 +97,19 @@ function Browse() {
     });
   }, [data, keyword, type, category, campusZone, status, location, from, to]);
 
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  const activeFilterCount = [
+    keyword.trim() !== "",
+    type !== ANY,
+    category !== ANY,
+    campusZone !== "all",
+    status !== ANY,
+    location.trim() !== "",
+    from !== "",
+    to !== "",
+  ].filter(Boolean).length;
+
   const reset = () => {
     setKeyword("");
     setType(ANY);
@@ -107,16 +124,54 @@ function Browse() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-6xl px-4 py-10">
-        <h1 className="text-4xl font-semibold">Browse the board</h1>
-        <p className="mt-2 text-muted-foreground">
-          {isLoading
-            ? "Loading items…"
-            : `${results.length} item${results.length === 1 ? "" : "s"} match your filters.`}
-        </p>
+      <main className="fluid-container py-8 md:py-10">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="font-display text-3xl sm:text-4xl font-semibold">Browse the board</h1>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              {isLoading
+                ? "Loading items…"
+                : `${results.length} item${results.length === 1 ? "" : "s"} match your filters.`}
+            </p>
+          </div>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[280px_1fr]">
-          <aside className="h-fit rounded-2xl border bg-card p-5 shadow-soft lg:sticky lg:top-24">
+          {/* Mobile Filter Toggle Button */}
+          <div className="flex items-center gap-2 w-full lg:hidden pt-2">
+            <Button
+              variant={mobileFiltersOpen || activeFilterCount > 0 ? "secondary" : "outline"}
+              onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+              className="flex-1 justify-between h-11 border-border/80"
+            >
+              <span className="flex items-center gap-2 font-semibold text-sm">
+                <SlidersHorizontal className="size-4 text-primary" /> Filters &amp; Search
+              </span>
+              <div className="flex items-center gap-2">
+                {activeFilterCount > 0 && (
+                  <Badge variant="default" className="rounded-full px-2 py-0.5 text-xs font-bold">
+                    {activeFilterCount} active
+                  </Badge>
+                )}
+                {mobileFiltersOpen ? (
+                  <ChevronUp className="size-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="size-4 text-muted-foreground" />
+                )}
+              </div>
+            </Button>
+            {activeFilterCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={reset} className="text-xs h-11 px-3">
+                Reset
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-6 md:mt-8 grid gap-6 lg:grid-cols-[250px_1fr]">
+          <aside
+            className={`h-fit rounded-2xl border bg-card p-5 shadow-soft lg:sticky lg:top-24 ${
+              mobileFiltersOpen ? "block animate-in fade-in duration-200" : "hidden lg:block"
+            }`}
+          >
             <div className="mb-4 flex items-center justify-between">
               <span className="inline-flex items-center gap-2 text-sm font-semibold">
                 <SlidersHorizontal className="size-4" /> Filters
@@ -268,9 +323,9 @@ function Browse() {
             </div>
 
             {isLoading ? (
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={i} className="h-72 rounded-xl" />
+              <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(220px, 100%), 1fr))" }}>
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <Skeleton key={i} className="h-52 rounded-xl" />
                 ))}
               </div>
             ) : results.length === 0 ? (
@@ -284,8 +339,8 @@ function Browse() {
                 </Button>
               </div>
             ) : (
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {results.map((item) => (
+              <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(220px, 100%), 1fr))" }}>
+                {results.map((item: ItemRow) => (
                   <ItemCard key={item.id} item={item} />
                 ))}
               </div>

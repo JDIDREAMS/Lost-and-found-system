@@ -137,11 +137,23 @@
     border-color: var(--color-border);
   }
 
+  html {
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    min-width: 320px;
+  }
+
+  img,
+  video {
+    max-width: 100%;
   }
 
   h1,
@@ -163,4 +175,38 @@
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ─── Fluid container ─────────────────────────────────────────────────────
+   Fills the viewport at any size: phone, tablet, laptop, desktop, ultrawide.
+   Uses clamp() so padding shrinks on small screens and grows on large ones,
+   without a hard max-width cap that would leave whitespace on big monitors.
+─────────────────────────────────────────────────────────────────────────── */
+@utility fluid-container {
+  width: 100%;
+  padding-inline: clamp(1rem, 4vw, 5rem);
+}
+
+/* Narrow variant for single-column forms/auth */
+@utility fluid-container-narrow {
+  width: 100%;
+  max-width: 540px;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2.5rem);
+}
+
+/* Medium variant for detail pages (item detail, claim chat) */
+@utility fluid-container-md {
+  width: 100%;
+  max-width: 900px;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 4rem);
 }

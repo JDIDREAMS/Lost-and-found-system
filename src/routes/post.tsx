@@ -281,7 +281,7 @@ function Post() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-2xl px-4 py-10">
+      <main className="fluid-container-narrow py-10">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h1 className="font-display text-3xl font-semibold">Post an item</h1>

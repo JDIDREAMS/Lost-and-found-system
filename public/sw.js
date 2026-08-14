@@ -1,5 +1,5 @@
-const CACHE_NAME = "foundit-cache-v1";
-const STATIC_ASSETS = ["/", "/index.html", "/manifest.webmanifest", "/favicon.ico"];
+const CACHE_NAME = "foundit-cache-v3";
+const STATIC_ASSETS = ["/", "/index.html", "/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

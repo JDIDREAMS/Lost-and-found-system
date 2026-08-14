@@ -137,7 +137,7 @@
     },
     {
       "id": "d6d3415d-fbc8-488b-afc2-c741f1909d38",
-      "title": ",m.cnmncvmd",
+      "title": ",mghj",
       "description": "kcldm;klsdnvjkn",
       "category": "Electronics",
       "campus_zone": "science",
@@ -239,7 +239,7 @@
     },
     {
       "id": "item-1",
-      "title": "Black leather wallet",
+      "title": "Black",
       "description": "Slim bifold wallet with a student ID inside and a few loyalty cards. No cash.",
       "category": "Wallets",
       "campus_zone": "library",
@@ -330,5 +330,17 @@
   "audit_logs": [],
   "feedbacks": [],
   "watchlists": [],
-  "preferences": []
+  "preferences": [
+    {
+      "user_id": "a0d774d0-dae1-48e1-8820-39365f37408a",
+      "in_app": true,
+      "email": true,
+      "whatsapp": false,
+      "notify_on_claim": true,
+      "notify_on_message": true,
+      "notify_on_match": true,
+      "notify_on_handover": true,
+      "notify_on_watchlist": true
+    }
+  ]
 }

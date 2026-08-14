@@ -236,7 +236,7 @@ export function ClaimThread() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <main className="fluid-container-md py-8">
         <Button variant="ghost" size="sm" asChild className="mb-4">
           <Link to="/dashboard">
             <ArrowLeft className="size-4" /> Back to dashboard

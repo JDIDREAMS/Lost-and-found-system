@@ -14,6 +14,7 @@ export default defineConfig({
   },
   vite: {
     server: {
+      host: true,
       proxy: {
         // Forward all /api/* requests to the Express backend (avoids browser CORS blocks)
         "/api": {

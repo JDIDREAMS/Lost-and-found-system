@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="100%" stop-color="#312e81" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+  
+  <!-- Base Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGradient)" />
+  
+  <!-- Subtle Inner Border / Glow -->
+  <rect x="8" y="8" width="496" height="496" rx="104" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="4" />
+  
+  <!-- Center Magnifying Glass + Pin Emblem -->
+  <g filter="url(#shadow)" transform="translate(116, 116)">
+    <!-- Magnifier Outer Ring -->
+    <circle cx="120" cy="120" r="88" fill="none" stroke="#ffffff" stroke-width="28" stroke-linecap="round" />
+    
+    <!-- Central Pin Point -->
+    <circle cx="120" cy="120" r="32" fill="#38bdf8" />
+    
+    <!-- Handle -->
+    <line x1="184" y1="184" x2="260" y2="260" stroke="#ffffff" stroke-width="28" stroke-linecap="round" />
+  </g>
+</svg>

@@ -30,52 +30,38 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { data: recent } = useQuery({
-    queryKey: ["items", "recent"],
-    queryFn: async () => {
-      try {
-        const { items } = await api.getItems();
-        return items.slice(0, 6) as unknown as ItemRow[];
-      } catch {
-        const { data, error } = await supabase
-          .from("items")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(6);
-        if (error) throw error;
-        return (data ?? []) as ItemRow[];
-      }
+  const { data: recent } = useQuery<ItemRow[]>({
+    queryKey: ["items", "supabase", "recent"],
+    queryFn: async (): Promise<ItemRow[]> => {
+      const { data, error } = await supabase
+        .from("items")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(6);
+      if (error) throw error;
+      return (data ?? []) as ItemRow[];
     },
   });
 
   const { data: stats } = useQuery({
-    queryKey: ["items", "stats"],
+    queryKey: ["items", "supabase", "stats"],
     queryFn: async () => {
-      try {
-        const { items } = await api.getItems();
-        return {
-          total: items.length,
-          resolved: items.filter((i) => i.status === "resolved").length,
-          found: items.filter((i) => i.item_type === "found").length,
-        };
-      } catch {
-        const [total, resolved, found] = await Promise.all([
-          supabase.from("items").select("*", { count: "exact", head: true }),
-          supabase
-            .from("items")
-            .select("*", { count: "exact", head: true })
-            .eq("status", "resolved"),
-          supabase
-            .from("items")
-            .select("*", { count: "exact", head: true })
-            .eq("item_type", "found"),
-        ]);
-        return {
-          total: total.count ?? 0,
-          resolved: resolved.count ?? 0,
-          found: found.count ?? 0,
-        };
-      }
+      const [total, resolved, found] = await Promise.all([
+        supabase.from("items").select("*", { count: "exact", head: true }),
+        supabase
+          .from("items")
+          .select("*", { count: "exact", head: true })
+          .eq("status", "resolved"),
+        supabase
+          .from("items")
+          .select("*", { count: "exact", head: true })
+          .eq("item_type", "found"),
+      ]);
+      return {
+        total: total.count ?? 0,
+        resolved: resolved.count ?? 0,
+        found: found.count ?? 0,
+      };
     },
   });
 
@@ -83,7 +69,7 @@ function Index() {
     <div className="min-h-screen">
       <SiteHeader />
 
-      <main className="mx-auto max-w-6xl px-4">
+      <main className="fluid-container py-6 md:py-10">
         {/* Bento hero */}
         <section className="grid gap-3 py-8 md:grid-cols-6 md:py-12">
           <div className="relative flex flex-col justify-between overflow-hidden rounded-lg border border-foreground/15 bg-card p-6 md:col-span-4 md:p-10">
@@ -195,7 +181,7 @@ function Index() {
               </Link>
             </Button>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(220px, 100%), 1fr))" }}>
             {(recent ?? []).map((item) => (
               <ItemCard key={item.id} item={item} />
             ))}

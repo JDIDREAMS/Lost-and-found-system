@@ -220,7 +220,7 @@ function Admin() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-6xl px-4 py-10">
+      <main className="fluid-container py-10">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -266,7 +266,7 @@ function Admin() {
             onValueChange={(v) => setActiveTab(v as "reports" | "listings" | "audit")}
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-3 max-w-md">
+            <TabsList className="flex w-full overflow-x-auto sm:grid sm:grid-cols-3 max-w-lg p-1">
               <TabsTrigger value="reports" className="relative gap-2 text-xs font-semibold">
                 <ShieldAlert className="size-3.5" />
                 Moderation Queue

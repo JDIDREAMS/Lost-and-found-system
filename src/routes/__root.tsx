@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { Toaster } from "@/components/ui/sonner";
+import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 
 function NotFoundComponent() {
   return (
@@ -108,8 +109,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap",
       },
 
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
-      { rel: "apple-touch-icon", href: "/favicon.ico" },
+      { rel: "icon", href: "/icon.svg", type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: "/icon.svg" },
     ],
   }),
   shellComponent: RootShell,
@@ -149,6 +150,7 @@ function RootComponent() {
         <AuthProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
+          <PwaInstallPrompt />
           <Toaster richColors position="top-center" />
         </AuthProvider>
       </ThemeProvider>

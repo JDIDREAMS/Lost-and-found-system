@@ -214,8 +214,8 @@ function AuthPage() {
         <p className="text-sm opacity-70">Campus lost &amp; found board</p>
       </div>
 
-      <div className="flex items-center justify-center px-4 py-16">
-        <div className="w-full max-w-sm">
+      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center fluid-container py-12">
+        <div className="w-full max-w-md">
           {showForgot ? (
             <div className="space-y-4">
               <button

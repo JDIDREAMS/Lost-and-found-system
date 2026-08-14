@@ -1,16 +1,44 @@
 {
+  "id": "/",
   "name": "FoundIt - Campus Lost & Found",
   "short_name": "FoundIt",
-  "description": "Smart campus lost and found platform with instant matching and safe handovers.",
+  "description": "Smart campus lost and found platform with instant matching, claim verification, and safe handovers.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#090d16",
   "theme_color": "#4f46e5",
+  "categories": ["education", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Browse Board",
+      "short_name": "Browse",
+      "description": "Search lost and found items",
+      "url": "/browse",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Report Item",
+      "short_name": "Post",
+      "description": "Report a lost or found item",
+      "url": "/post",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "My Dashboard",
+      "short_name": "Dashboard",
+      "description": "View claims and listings",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
     }
   ]
 }

@@ -204,7 +204,7 @@ function Dashboard() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-6xl px-4 py-10">
+      <main className="fluid-container py-10">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="font-display text-3xl font-semibold">Your dashboard</h1>
@@ -218,8 +218,8 @@ function Dashboard() {
           </div>
         </div>
 
-        <Tabs defaultValue="items" className="mt-8">
-          <TabsList className="flex flex-wrap gap-1">
+        <Tabs defaultValue="items" className="mt-6 md:mt-8">
+          <TabsList className="flex w-full overflow-x-auto justify-start gap-1 p-1 bg-muted/70 rounded-xl no-scrollbar">
             <TabsTrigger value="items">My listings ({myItems?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="matches" className="relative gap-1.5">
               <Sparkles className="size-3.5 text-primary" />
@@ -249,13 +249,13 @@ function Dashboard() {
           {/* TAB 1: My Listings (Lost and Found posts) */}
           <TabsContent value="items" className="pt-6">
             {itemsLoading ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {Array.from({ length: 3 }).map((_, i) => (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton key={i} className="h-72 rounded-2xl" />
                 ))}
               </div>
             ) : myItems?.length ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {myItems.map((item) => (
                   <div
                     key={item.id}

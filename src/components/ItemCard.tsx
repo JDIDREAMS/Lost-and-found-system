@@ -13,43 +13,43 @@ export function ItemCard({ item }: { item: ItemRow }) {
     <Link
       to="/items/$id"
       params={{ id: item.id }}
-      className="group flex flex-col overflow-hidden rounded-lg border border-foreground/15 bg-card transition-colors hover:bg-surface focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      className="group flex flex-col overflow-hidden rounded-xl border border-foreground/15 bg-card transition-all duration-200 hover:shadow-md hover:border-foreground/30 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
-      <div className="relative aspect-[4/3] overflow-hidden border-b border-foreground/15">
+      <div className="relative aspect-video overflow-hidden border-b border-foreground/10 bg-muted/30">
         <ItemImage
           path={item.image_url}
           category={item.category}
           alt={item.title}
           className="size-full transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+        <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1">
           <Badge
             variant={item.item_type === "lost" ? "lost" : "found"}
-            className="rule-label rounded-sm shadow-sm"
+            className="rule-label rounded px-1.5 py-0.5 text-[9px] shadow-sm uppercase font-bold"
           >
             {item.item_type}
           </Badge>
           {zone && (
             <Badge
               variant="outline"
-              className="rounded-sm bg-background/80 backdrop-blur text-[10px] shadow-sm"
+              className="rounded bg-background/85 backdrop-blur text-[9px] px-1.5 py-0.5 shadow-sm font-medium"
             >
               {zone.icon} {zone.label.split("&")[0]?.trim()}
             </Badge>
           )}
         </div>
 
-        <div className="absolute top-3 right-3 flex flex-wrap items-center gap-1.5">
+        <div className="absolute top-2.5 right-2.5 flex flex-wrap items-center gap-1">
           {item.bumped_at && item.status === "open" && (
             <Badge
               variant="secondary"
-              className="rounded-sm bg-primary/90 text-primary-foreground text-[10px] shadow-sm flex items-center gap-1"
+              className="rounded bg-primary/90 text-primary-foreground text-[9px] px-1.5 py-0.5 shadow-sm flex items-center gap-1 font-medium"
             >
               <Rocket className="size-2.5" /> Bumped
             </Badge>
           )}
           {item.status !== "open" ? (
-            <Badge variant="outline" className="rounded-sm bg-card/90 backdrop-blur text-[10px]">
+            <Badge variant="outline" className="rounded bg-card/90 backdrop-blur text-[9px] px-1.5 py-0.5 font-medium">
               {item.status === "claimed"
                 ? "Claim in progress"
                 : item.status === "expired"
@@ -59,7 +59,7 @@ export function ItemCard({ item }: { item: ItemRow }) {
           ) : (
             <Badge
               variant="outline"
-              className={`rounded-sm text-[10px] backdrop-blur ${
+              className={`rounded text-[9px] px-1.5 py-0.5 backdrop-blur font-medium ${
                 expiry.days <= 5
                   ? "bg-red-500/10 text-red-600 border-red-500/30"
                   : "bg-background/80 text-muted-foreground"
@@ -70,17 +70,17 @@ export function ItemCard({ item }: { item: ItemRow }) {
           )}
         </div>
       </div>
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <span className="rule-label text-muted-foreground">{item.category}</span>
-        <h3 className="text-lg leading-snug font-bold">{item.title}</h3>
-        <p className="line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-foreground/10 pt-3 text-xs text-muted-foreground">
-          <div className="flex flex-wrap gap-x-3 gap-y-1">
+      <div className="flex flex-1 flex-col gap-1 p-3">
+        <span className="rule-label text-muted-foreground text-[10px] tracking-wider">{item.category}</span>
+        <h3 className="text-xs sm:text-sm leading-snug font-bold line-clamp-1 break-words">{item.title}</h3>
+        <p className="line-clamp-2 text-xs text-muted-foreground break-words leading-relaxed">{item.description}</p>
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-foreground/10 pt-2 text-[10px] text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <span className="inline-flex items-center gap-1">
-              <MapPin className="size-3.5" /> {item.location || "Unspecified"}
+              <MapPin className="size-3 shrink-0 text-primary/70" /> <span className="truncate max-w-[110px] sm:max-w-[130px]">{item.location || "Unspecified"}</span>
             </span>
-            <span className="inline-flex items-center gap-1">
-              <CalendarDays className="size-3.5" /> {formatDate(item.date_occurred)}
+            <span className="inline-flex items-center gap-1 shrink-0">
+              <CalendarDays className="size-3 shrink-0 text-primary/70" /> {formatDate(item.date_occurred)}
             </span>
           </div>
           {item.posted_by && <TrustBadge userId={item.posted_by} compact />}

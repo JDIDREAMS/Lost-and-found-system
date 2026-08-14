@@ -35,7 +35,17 @@ export class ItemsService {
       }
     }
 
-    let items = Array.from(combinedMap.values());
+    // Deduplicate by content signature to ensure items are strictly kept in 1s
+    const seenContentKeys = new Set<string>();
+    let items: ItemRecord[] = [];
+
+    for (const item of combinedMap.values()) {
+      const contentKey = `${item.title.trim().toLowerCase()}__${item.item_type}__${item.location.trim().toLowerCase()}`;
+      if (!seenContentKeys.has(contentKey)) {
+        seenContentKeys.add(contentKey);
+        items.push(item);
+      }
+    }
 
     // Sort by created_at descending (bumped items jump to top)
     items.sort((a, b) => {
